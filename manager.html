@@ -13,6 +13,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; border: 1px solid #ddd; text-align: right; }
         th { background: #f8f9fa; }
+        img { max-width: 50px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -28,6 +29,8 @@
                 <option value="">اختر العهدة المعطلة...</option>
             </select>
             <textarea id="ticket-desc" placeholder="وصف العطل بالتفصيل..." rows="3" required></textarea>
+            <label>صورة العطل (اختياري):</label>
+            <input type="file" id="ticket-image" accept="image/*">
             <button type="submit">إرسال البلاغ</button>
         </form>
 
@@ -38,6 +41,7 @@
                     <th>رقم البلاغ</th>
                     <th>العهدة</th>
                     <th>الوصف</th>
+                    <th>الصورة</th>
                     <th>الحالة</th>
                 </tr>
             </thead>
@@ -48,14 +52,10 @@
     <script type="module">
         import { supabase } from './js/supabase.js'
         const user = JSON.parse(localStorage.getItem('user'));
-        
-        if (!user || user.role !== 'branch_manager') {
-            window.location.href = 'index.html';
-        }
+        if (!user || user.role !== 'branch_manager') window.location.href = 'index.html';
 
         window.logout = function() { localStorage.removeItem('user'); window.location.href = 'index.html'; }
 
-        // جلب العهد الخاصة بفرع المدير فقط
         async function loadMyAssets() {
             const { data } = await supabase.from('assets').select('*').eq('branch_id', user.branch_id);
             const select = document.getElementById('ticket-asset');
@@ -65,53 +65,71 @@
             });
         }
 
-        // إرسال البلاغ
         document.getElementById('ticket-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "جاري الرفع..."; btn.disabled = true;
+
             const asset_id = document.getElementById('ticket-asset').value;
             const description = document.getElementById('ticket-desc').value;
+            const file = document.getElementById('ticket-image').files[0];
+            let image_url = null;
 
+            // 1. رفع الصورة لو موجودة
+            if (file) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const { data: uploadData, error: uploadError } = await supabase.storage.from('tickets').upload(fileName, file);
+                
+                if (!uploadError) {
+                    const { data: urlData } = supabase.storage.from('tickets').getPublicUrl(fileName);
+                    image_url = urlData.publicUrl;
+                }
+            }
+
+            // 2. تسجيل البلاغ
             const { error } = await supabase.from('tickets').insert([{
-                asset_id,
-                branch_id: user.branch_id,
-                description,
-                created_by: user.id
+                asset_id, branch_id: user.branch_id, description, image_url, created_by: user.id
             }]);
 
             if (error) {
                 alert('حدث خطأ: ' + error.message);
             } else {
+                // 3. تحديث حالة العهدة لـ "عطلان"
+                await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
+                
                 alert('تم إرسال البلاغ بنجاح!');
                 document.getElementById('ticket-form').reset();
-                loadMyTickets();
+                loadMyTickets(); loadMyAssets();
             }
+            btn.innerText = "إرسال البلاغ"; btn.disabled = false;
         });
 
-        // عرض بلاغات الفرع
         async function loadMyTickets() {
             const { data } = await supabase.from('tickets').select(`*, assets (name)`).eq('branch_id', user.branch_id).order('id', { ascending: false });
             const tbody = document.querySelector('#manager-tickets-table tbody');
             tbody.innerHTML = '';
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا توجد بلاغات</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد بلاغات</td></tr>';
                 return;
             }
             data.forEach(ticket => {
-                const statusText = ticket.status === 'open' ? 'مفتوح' : 'مغلق';
-                const color = ticket.status === 'open' ? '#ffc107' : '#6c757d';
+                const statusText = ticket.status === 'open' ? 'مفتوح' : (ticket.status === 'in_progress' ? 'جاري العمل' : 'مغلق');
+                const color = ticket.status === 'open' ? '#ffc107' : (ticket.status === 'in_progress' ? '#17a2b8' : '#6c757d');
+                const imgHtml = ticket.image_url ? `<img src="${ticket.image_url}" onclick="window.open(this.src)">` : '-';
+                
                 tbody.innerHTML += `
                     <tr>
                         <td>#${ticket.id}</td>
                         <td>${ticket.assets?.name || '-'}</td>
                         <td>${ticket.description}</td>
+                        <td>${imgHtml}</td>
                         <td><span style="background:${color}; padding:5px; border-radius:5px; color:${ticket.status === 'open' ? 'black':'white'};">${statusText}</span></td>
                     </tr>
                 `;
             });
         }
-
-        loadMyAssets();
-        loadMyTickets();
+        loadMyAssets(); loadMyTickets();
     </script>
 </body>
 </html>
