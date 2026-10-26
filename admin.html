@@ -26,11 +26,41 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; overflow-y: auto;}
         .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; margin: 20px auto; }
         .btn-view { background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-print { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
         
         .timeline { position: relative; max-width: 100%; margin: 20px 0; padding-right: 20px; border-right: 3px solid #007bff; }
         .timeline-item { margin-bottom: 15px; position: relative; }
         .timeline-item::before { content: ''; position: absolute; right: -28px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: #007bff; border: 2px solid white; }
         .timeline-date { font-size: 12px; color: #666; }
+
+        /* ====== إعدادات الطباعة الاحترافية ====== */
+        @media print {
+            /* إخفاء كل حاجة مش محتاجينها في الطباعة */
+            body { background-color: white; padding: 0; margin: 0; font-size: 14px; }
+            .header, .nav-tabs, .filter-section, .btn-print, .btn-view, .logout-btn, button, .modal, .no-print { display: none !important; }
+            
+            /* إظهار المحتوى المطلوب فقط */
+            .content-box { box-shadow: none; padding: 0; display: block !important; }
+            .printable-area { display: block !important; width: 100%; }
+            
+            /* ستايل الورقة */
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .print-header h1 { margin: 0; font-size: 24px; }
+            .print-header p { margin: 5px 0 0 0; font-size: 14px; color: #555; }
+            
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #000 !important; padding: 8px; text-align: right; }
+            th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            
+            .print-footer { display: block !important; margin-top: 30px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
+            
+            /* إخفاء أي عناصر تانية */
+            .timeline { border-right: 1px solid #000; }
+            .timeline-item::before { display: none; }
+        }
+        
+        /* إخفاء الهيدر الخاص بالطباعة في الشاشة العادية */
+        .print-header, .print-footer { display: none; }
     </style>
 </head>
 <body>
@@ -39,7 +69,7 @@
         <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
     </div>
 
-    <div class="nav-tabs">
+    <div class="nav-tabs no-print">
         <button id="btn-branches" onclick="showTab('branches')">إدارة الفروع</button>
         <button id="btn-assets" class="active" onclick="showTab('assets')">إدارة العهد</button>
         <button id="btn-tickets" onclick="showTab('tickets')">البلاغات</button>
@@ -47,45 +77,69 @@
 
     <!-- قسم الفروع -->
     <div id="tab-branches" class="content-box">
-        <h3>إضافة فرع جديد</h3>
-        <form id="add-branch-form">
-            <input type="text" id="branch-name" placeholder="اسم الفرع" required>
-            <button type="submit">إضافة الفرع</button>
-        </form>
+        <div class="print-header">
+            <h1>شركة الغراباوي للقهوة</h1>
+            <p>تقرير الفروع - تاريخ الطباعة: <span id="print-date-branches"></span></p>
+        </div>
+        <div class="no-print">
+            <h3>إضافة فرع جديد</h3>
+            <form id="add-branch-form">
+                <input type="text" id="branch-name" placeholder="اسم الفرع" required>
+                <button type="submit">إضافة الفرع</button>
+            </form>
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير الفروع</button>
+        </div>
         <h3 style="margin-top: 30px;">قائمة الفروع</h3>
         <table id="branches-table">
             <thead><tr><th>كود الفرع</th><th>اسم الفرع</th><th>تاريخ الإضافة</th></tr></thead>
             <tbody></tbody>
         </table>
+        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
     </div>
 
     <!-- قسم العهد -->
     <div id="tab-assets" class="content-box active">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="print-header">
+            <h1>شركة الغراباوي للقهوة</h1>
+            <p>تقرير العهد - تاريخ الطباعة: <span id="print-date-assets"></span></p>
+        </div>
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center;">
             <h3>إدارة العهد</h3>
             <button onclick="document.getElementById('add-asset-modal').style.display='flex'" style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">+ إضافة عهدة جديدة</button>
         </div>
         
-        <div style="margin-top:20px; display:flex; gap:10px; align-items:center;">
-            <label>اختر الفرع لعرض عهده:</label>
-            <select id="filter-branch" onchange="loadAssets()" style="padding:8px; border-radius:5px;">
-                <option value="">كل الفروع</option>
-            </select>
+        <div class="filter-section no-print" style="margin-top:20px; display:flex; gap:10px; align-items:center; justify-content: space-between;">
+            <div>
+                <label>اختر الفرع لعرض عهده:</label>
+                <select id="filter-branch" onchange="loadAssets()" style="padding:8px; border-radius:5px;">
+                    <option value="">كل الفروع</option>
+                </select>
+            </div>
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير العهد</button>
         </div>
 
         <table id="assets-table">
-            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الفرع</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الموديل</th><th>السيريال</th><th>الفرع</th><th>الحالة</th><th class="no-print">إجراء</th></tr></thead>
             <tbody></tbody>
         </table>
+        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
     </div>
 
-    <!-- قسم البلاغات (نفس القديم) -->
+    <!-- قسم البلاغات -->
     <div id="tab-tickets" class="content-box">
-        <h3>البلاغات الواردة</h3>
+        <div class="print-header">
+            <h1>شركة الغراباوي للقهوة</h1>
+            <p>تقرير البلاغات - تاريخ الطباعة: <span id="print-date-tickets"></span></p>
+        </div>
+        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>البلاغات الواردة</h3>
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير البلاغات</button>
+        </div>
         <table id="tickets-table">
-            <thead><tr><th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>صورة</th><th>الحالة</th><th>إجراء</th></tr></thead>
+            <thead><tr><th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>الحالة</th><th>التكلفة</th><th class="no-print">إجراء</th></tr></thead>
             <tbody></tbody>
         </table>
+        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
     </div>
 
     <!-- مودال إضافة عهدة (بيانات كاملة) -->
@@ -118,10 +172,14 @@
         </div>
     </div>
 
-    <!-- مودال تفاصيل العهدة والسجل (Timeline) -->
+    <!-- مودال تفاصيل العهدة والسجل -->
     <div id="asset-details-modal" class="modal">
         <div class="modal-content" style="width: 600px;">
-            <h3 id="details-title">تفاصيل العهدة</h3>
+            <div class="print-header">
+                <h1>شركة الغراباوي للقهوة</h1>
+                <p>سجل صيانة الأصل - تاريخ الطباعة: <span id="print-date-details"></span></p>
+            </div>
+            <h3 id="details-title" class="no-print">تفاصيل العهدة</h3>
             <div id="details-info" style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">
                 <!-- البيانات هتتحمل هنا -->
             </div>
@@ -129,11 +187,13 @@
             <div id="details-timeline" class="timeline">
                 <!-- السجل هيتحمل هنا -->
             </div>
-            <button onclick="document.getElementById('asset-details-modal').style.display='none'" style="background:#343a40;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:10px;">إغلاق</button>
+            <button class="btn-print" onclick="window.print()" style="width:100%; justify-content:center; margin-top:10px;">🖨️ طباعة سجل العهدة</button>
+            <button class="no-print" onclick="document.getElementById('asset-details-modal').style.display='none'" style="background:#343a40;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:10px;">إغلاق</button>
+            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
         </div>
     </div>
 
-    <!-- مودال إغلاق البلاغ (من النسخة السابقة) -->
+    <!-- مودال إغلاق البلاغ -->
     <div id="close-modal" class="modal">
         <div class="modal-content">
             <h3>إغلاق البلاغ وإضافة تفاصيل الصيانة</h3>
@@ -155,6 +215,13 @@
         import { supabase } from './js/supabase.js'
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') window.location.href = 'index.html';
+
+        // تعيين تاريخ الطباعة في كل قسم
+        const today = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('print-date-branches').innerText = today;
+        document.getElementById('print-date-assets').innerText = today;
+        document.getElementById('print-date-tickets').innerText = today;
+        document.getElementById('print-date-details').innerText = today;
 
         window.logout = function() { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = function(tabId) {
@@ -187,7 +254,6 @@
             document.getElementById('branch-name').value = ''; loadBranches();
         });
 
-        // تحميل العهد مع الفلترة
         window.loadAssets = async function() {
             const filterBranchId = document.getElementById('filter-branch').value;
             let query = supabase.from('assets').select(`*, branches (name)`).order('id', { ascending: false });
@@ -199,7 +265,7 @@
             tbody.innerHTML = '';
             
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد عهد مضافة</td></tr>'; return;
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد عهد مضافة</td></tr>'; return;
             }
 
             data.forEach(asset => {
@@ -210,9 +276,11 @@
                         <td>${asset.code}</td>
                         <td>${asset.name}</td>
                         <td>${asset.type || '-'}</td>
+                        <td>${asset.model || '-'}</td>
+                        <td>${asset.serial_number || '-'}</td>
                         <td>${asset.branches?.name || '-'}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td><button class="btn-view" onclick="viewAssetDetails(${asset.id})">التفاصيل والسجل</button></td>
+                        <td class="no-print"><button class="btn-view" onclick="viewAssetDetails(${asset.id})">التفاصيل</button></td>
                     </tr>`;
             });
         }
@@ -234,9 +302,7 @@
             loadAssets();
         });
 
-        // عرض تفاصيل العهدة والسجل
         window.viewAssetDetails = async function(assetId) {
-            // جلب بيانات العهدة
             const { data: asset } = await supabase.from('assets').select(`*, branches (name)`).eq('id', assetId).single();
             
             document.getElementById('details-title').innerText = `تفاصيل: ${asset.name} (${asset.code})`;
@@ -250,7 +316,6 @@
                 <p><strong>ملاحظات:</strong> ${asset.notes || 'لا يوجد'}</p>
             `;
 
-            // جلب سجل البلاغات الخاصة بالعهدة دي
             const { data: tickets } = await supabase.from('tickets').select(`
                 *,
                 work_orders ( technician_name, status, created_at, costs (amount) )
@@ -291,9 +356,11 @@
             document.getElementById('asset-details-modal').style.display = 'flex';
         }
 
-        // ================= قسم البلاغات وإغلاقها =================
         async function loadTickets() {
-            const { data } = await supabase.from('tickets').select(`*, branches (name), assets (name)`).order('id', { ascending: false });
+            const { data } = await supabase.from('tickets').select(`
+                *, branches (name), assets (name), work_orders (costs (amount))
+            `).order('id', { ascending: false });
+            
             const tbody = document.querySelector('#tickets-table tbody');
             tbody.innerHTML = '';
             if(!data || data.length === 0) {
@@ -304,14 +371,22 @@
                 if (ticket.status === 'open' || ticket.status === 'in_progress') {
                     actionBtn = `<button onclick="openCloseModal(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">إغلاق وإضافة صيانة</button>`;
                 }
-                const imgHtml = ticket.image_url ? `<img src="${ticket.image_url}" onclick="window.open(this.src)" style="max-width:50px;cursor:pointer;">` : '-';
                 const statusText = ticket.status === 'open' ? 'مفتوح' : (ticket.status === 'in_progress' ? 'جاري العمل' : 'مغلق');
+                
+                // حساب التكلفة لو موجودة
+                let cost = '-';
+                if (ticket.work_orders && ticket.work_orders.length > 0) {
+                    const wo = ticket.work_orders[0];
+                    if (wo.costs && wo.costs.length > 0) cost = wo.costs[0].amount + ' جنيه';
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td>#${ticket.id}</td><td>${ticket.branches?.name || '-'}</td><td>${ticket.assets?.name || '-'}</td>
-                        <td>${ticket.description}</td><td>${imgHtml}</td>
+                        <td>${ticket.description}</td>
                         <td><span class="status-badge status-${ticket.status}">${statusText}</span></td>
-                        <td>${actionBtn}</td>
+                        <td>${cost}</td>
+                        <td class="no-print">${actionBtn}</td>
                     </tr>`;
             });
         }
