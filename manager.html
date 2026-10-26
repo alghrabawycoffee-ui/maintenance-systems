@@ -76,7 +76,6 @@
             <div class="user-badge" id="user-info"></div>
         </div>
 
-        <!-- Tickets Tab -->
         <div id="tab-tickets" class="content-box active">
             <div class="box-header">
                 <span class="box-title">البلاغات</span>
@@ -85,14 +84,12 @@
             <div class="table-responsive"><table id="tbl-tickets"><thead><tr><th>رقم</th><th>العهدة</th><th>الوصف</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
         </div>
 
-        <!-- Assets Tab -->
         <div id="tab-assets" class="content-box">
             <div class="box-header"><span class="box-title">عهد الفرع</span></div>
             <div class="table-responsive"><table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
         </div>
     </div>
 
-    <!-- Modal: Add Ticket -->
     <div id="ticket-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>إرسال بلاغ جديد</h3><button class="modal-close" onclick="document.getElementById('ticket-modal').style.display='none'">&times;</button></div>
@@ -117,7 +114,6 @@
 
         document.getElementById('user-info').innerText = `👤 ${user.username}`;
 
-        // تحميل الإعدادات
         async function loadSettings() {
             const { data } = await supabase.from('settings').select('*').eq('id', 1).single();
             if(data) {
@@ -136,16 +132,11 @@
             document.getElementById('title').innerText = id === 'tickets' ? 'بلاغات الفرع' : 'عهد الفرع';
         }
 
-        // جلب العهد الخاصة بالفرع
         async function loadAssets() {
             const { data, error } = await supabase.from('assets').select('*').eq('branch_id', user.branch_id);
-            
-            if(error) console.error(error);
-            
             const tbody = document.querySelector('#tbl-assets tbody'); 
             const select = document.getElementById('t-asset');
-            tbody.innerHTML = ''; 
-            select.innerHTML = '<option value="">اختر العهدة...</option>';
+            tbody.innerHTML = ''; select.innerHTML = '<option value="">اختر العهدة...</option>';
 
             if(!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#6B7280;">لا توجد عهد مسجلة لهذا الفرع.</td></tr>';
@@ -160,7 +151,6 @@
         }
         loadAssets();
 
-        // جلب البلاغات
         async function loadTickets() {
             const { data } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', user.branch_id).order('id', {ascending:false});
             const tbody = document.querySelector('#tbl-tickets tbody'); tbody.innerHTML = '';
@@ -178,7 +168,6 @@
         }
         loadTickets();
 
-        // إضافة بلاغ
         document.getElementById('ticket-form').onsubmit = async (e) => {
             e.preventDefault();
             const asset_id = document.getElementById('t-asset').value;
@@ -188,9 +177,8 @@
                 asset_id, branch_id: user.branch_id, description, created_by: user.id
             }]);
 
-            if(error) {
-                alert('خطأ: ' + error.message);
-            } else {
+            if(error) alert('خطأ: ' + error.message);
+            else {
                 await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
                 document.getElementById('ticket-modal').style.display = 'none';
                 document.getElementById('ticket-form').reset();
