@@ -15,13 +15,17 @@
         input, select, textarea, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; }
         button[type="submit"] { background: #28a745; color: white; border: none; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: right; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: right; vertical-align: middle; }
         th { background: #f8f9fa; }
-        .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; color: white; }
+        .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; color: white; display:inline-block;}
+        .status-open { background: #ffc107; color: black; }
+        .status-in_progress { background: #17a2b8; }
+        .status-closed { background: #6c757d; }
         .status-working { background: #28a745; }
         .status-broken { background: #dc3545; }
-        .status-open { background: #ffc107; color: black; }
-        .status-closed { background: #6c757d; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 400px; }
+        img { max-width: 50px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -64,9 +68,7 @@
                 <option value="عربية">عربية</option>
                 <option value="أخرى">أخرى</option>
             </select>
-            <select id="asset-branch" required>
-                <option value="">اختر الفرع...</option>
-            </select>
+            <select id="asset-branch" required><option value="">اختر الفرع...</option></select>
             <button type="submit">إضافة العهدة</button>
         </form>
         <h3 style="margin-top: 30px;">قائمة العهد</h3>
@@ -82,16 +84,29 @@
         <table id="tickets-table">
             <thead>
                 <tr>
-                    <th>رقم البلاغ</th>
-                    <th>الفرع</th>
-                    <th>العهدة</th>
-                    <th>الوصف</th>
-                    <th>الحالة</th>
-                    <th>إجراء</th>
+                    <th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>صورة العطل</th><th>الحالة</th><th>إجراء</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+    </div>
+
+    <!-- نافذة إغلاق البلاغ (Modal) -->
+    <div id="close-modal" class="modal">
+        <div class="modal-content">
+            <h3>إغلاق البلاغ وإضافة تفاصيل الصيانة</h3>
+            <input type="text" id="tech-name" placeholder="اسم الفني أو الشركة" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
+            <select id="tech-type" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
+                <option value="internal">فني داخلي</option>
+                <option value="external">شركة خارجية</option>
+            </select>
+            <input type="number" id="cost-amount" placeholder="تكلفة الصيانة (جنيه)" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
+            <label>صورة بعد الإصلاح (اختياري):</label>
+            <input type="file" id="after-image" accept="image/*" style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+            <input type="hidden" id="current-ticket-id">
+            <button onclick="submitCloseTicket()" style="background:#28a745;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;">تأكيد الإغلاق</button>
+            <button onclick="document.getElementById('close-modal').style.display='none'" style="background:#dc3545;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:5px;">إلغاء</button>
+        </div>
     </div>
 
     <script type="module">
@@ -120,10 +135,8 @@
 
         document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('branch-name').value;
-            await supabase.from('branches').insert([{ name }]);
-            document.getElementById('branch-name').value = '';
-            loadBranches();
+            await supabase.from('branches').insert([{ name: document.getElementById('branch-name').value }]);
+            document.getElementById('branch-name').value = ''; loadBranches();
         });
 
         async function loadAssets() {
@@ -131,22 +144,21 @@
             const tbody = document.querySelector('#assets-table tbody');
             tbody.innerHTML = '';
             data?.forEach(asset => {
-                const branchName = asset.branches ? asset.branches.name : 'غير محدد';
                 const statusClass = asset.status === 'working' ? 'status-working' : 'status-broken';
                 const statusText = asset.status === 'working' ? 'شغال' : 'عطلان';
-                tbody.innerHTML += `<tr><td>${asset.code}</td><td>${asset.name}</td><td>${asset.type}</td><td>${branchName}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td></tr>`;
+                tbody.innerHTML += `<tr><td>${asset.code}</td><td>${asset.name}</td><td>${asset.type}</td><td>${asset.branches?.name || '-'}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td></tr>`;
             });
         }
 
         document.getElementById('add-asset-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const code = document.getElementById('asset-code').value;
-            const name = document.getElementById('asset-name').value;
-            const type = document.getElementById('asset-type').value;
-            const branch_id = document.getElementById('asset-branch').value;
-            await supabase.from('assets').insert([{ code, name, type, branch_id }]);
-            document.getElementById('add-asset-form').reset();
-            loadAssets();
+            await supabase.from('assets').insert([{
+                code: document.getElementById('asset-code').value,
+                name: document.getElementById('asset-name').value,
+                type: document.getElementById('asset-type').value,
+                branch_id: document.getElementById('asset-branch').value
+            }]);
+            document.getElementById('add-asset-form').reset(); loadAssets();
         });
 
         async function loadTickets() {
@@ -154,38 +166,73 @@
             const tbody = document.querySelector('#tickets-table tbody');
             tbody.innerHTML = '';
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد بلاغات حالياً</td></tr>';
-                return;
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد بلاغات حالياً</td></tr>'; return;
             }
             data.forEach(ticket => {
                 let actionBtn = '';
-                let statusClass = 'status-open';
-                if (ticket.status === 'open') {
-                    actionBtn = `<button onclick="closeTicket(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">تم الإصلاح</button>`;
-                } else {
-                    statusClass = 'status-closed';
+                if (ticket.status === 'open' || ticket.status === 'in_progress') {
+                    actionBtn = `<button onclick="openCloseModal(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">إغلاق وإضافة صيانة</button>`;
                 }
+                const imgHtml = ticket.image_url ? `<img src="${ticket.image_url}" onclick="window.open(this.src)">` : '-';
+                const statusText = ticket.status === 'open' ? 'مفتوح' : (ticket.status === 'in_progress' ? 'جاري العمل' : 'مغلق');
                 tbody.innerHTML += `
                     <tr>
-                        <td>#${ticket.id}</td>
-                        <td>${ticket.branches?.name || '-'}</td>
-                        <td>${ticket.assets?.name || '-'}</td>
-                        <td>${ticket.description}</td>
-                        <td><span class="status-badge ${statusClass}">${ticket.status === 'open' ? 'مفتوح' : 'مغلق'}</span></td>
+                        <td>#${ticket.id}</td><td>${ticket.branches?.name || '-'}</td><td>${ticket.assets?.name || '-'}</td>
+                        <td>${ticket.description}</td><td>${imgHtml}</td>
+                        <td><span class="status-badge status-${ticket.status}">${statusText}</span></td>
                         <td>${actionBtn}</td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
-        window.closeTicket = async function(id) {
-            await supabase.from('tickets').update({ status: 'closed' }).eq('id', id);
-            loadTickets();
+        window.openCloseModal = function(id) {
+            document.getElementById('current-ticket-id').value = id;
+            document.getElementById('close-modal').style.display = 'flex';
         }
 
-        loadBranches();
-        loadAssets();
-        loadTickets();
+        window.submitCloseTicket = async function() {
+            const ticketId = document.getElementById('current-ticket-id').value;
+            const techName = document.getElementById('tech-name').value;
+            const techType = document.getElementById('tech-type').value;
+            const costAmount = document.getElementById('cost-amount').value;
+            const file = document.getElementById('after-image').files[0];
+            let afterImgUrl = null;
+
+            if(!techName || !costAmount) return alert('املأ بيانات الفني والتكلفة');
+
+            // رفع صورة ما بعد الإصلاح
+            if (file) {
+                const fileName = `after_${Date.now()}.${file.name.split('.').pop()}`;
+                const { error } = await supabase.storage.from('tickets').upload(fileName, file);
+                if (!error) {
+                    const { data } = supabase.storage.from('tickets').getPublicUrl(fileName);
+                    afterImgUrl = data.publicUrl;
+                }
+            }
+
+            // 1. تسجيل أمر الشغل
+            const { data: woData, error: woError } = await supabase.from('work_orders').insert([{
+                ticket_id: ticketId, technician_name: techName, technician_type: techType, status: 'done', after_image_url: afterImgUrl
+            }]).select().single();
+
+            if (!woError && woData) {
+                // 2. تسجيل التكلفة
+                await supabase.from('costs').insert([{ work_order_id: woData.id, amount: costAmount, entered_by: user.id }]);
+                
+                // 3. تحديث البلاغ لـ مغلق
+                await supabase.from('tickets').update({ status: 'closed' }).eq('id', ticketId);
+                
+                // 4. تحديث العهدة لشغالة تاني
+                const { data: ticketData } = await supabase.from('tickets').select('asset_id').eq('id', ticketId).single();
+                await supabase.from('assets').update({ status: 'working' }).eq('id', ticketData.asset_id);
+            }
+
+            document.getElementById('close-modal').style.display = 'none';
+            document.getElementById('after-image').value = '';
+            loadTickets(); loadAssets();
+        }
+
+        loadBranches(); loadAssets(); loadTickets();
     </script>
 </body>
 </html>
