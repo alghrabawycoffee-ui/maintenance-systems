@@ -18,26 +18,35 @@
 <body>
     <div class="login-box">
         <h2>Maintenance System</h2>
-        <form id="login-form">
-            <input type="text" id="username" placeholder="اسم المستخدم" required>
-            <input type="password" id="password" placeholder="كلمة المرور" required>
-            <button type="submit" id="btn">دخول</button>
+        <div id="login-form">
+            <input type="text" id="username" placeholder="اسم المستخدم">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button type="button" id="login-btn">دخول</button>
             <div id="error"></div>
-        </form>
+        </div>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js'
 
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('login-btn');
             const err = document.getElementById('error');
             btn.innerText = 'جاري التحقق...';
+            btn.disabled = true;
             err.style.display = 'none';
 
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                err.innerText = "الرجاء إدخال البيانات";
+                err.style.display = 'block';
+                btn.innerText = 'دخول'; btn.disabled = false;
+                return;
+            }
+
+            console.log("محاولة دخول بـ:", username, password);
 
             // البحث عن المستخدم
             const { data, error } = await supabase
@@ -47,25 +56,28 @@
                 .eq('password', password)
                 .maybeSingle(); 
 
+            console.log("النتيجة:", data);
+            console.log("الخطأ:", error);
+
             if (error) {
-                err.innerText = "حدث خطأ في الاتصال: " + error.message;
+                err.innerText = "خطأ في الاتصال: " + error.message;
                 err.style.display = 'block';
-                btn.innerText = 'دخول';
+                btn.innerText = 'دخول'; btn.disabled = false;
                 return;
             }
 
             if (!data) {
                 err.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة!";
                 err.style.display = 'block';
-                btn.innerText = 'دخول';
+                btn.innerText = 'دخول'; btn.disabled = false;
                 return;
             }
 
             // تسجيل الدخول
             localStorage.setItem('user', JSON.stringify(data));
             
-            // التوجيه الذكي (بيحول الكلمة لحروف صغيرة عشان ميبقاش فيه لبس)
             const userRole = data.role.toLowerCase().trim();
+            console.log("الصلاحية:", userRole);
 
             if (userRole === 'admin') {
                 window.location.href = 'admin.html';
@@ -74,7 +86,7 @@
             } else {
                 window.location.href = 'manager.html';
             }
-        };
+        });
     </script>
 </body>
 </html>
