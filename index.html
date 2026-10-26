@@ -49,8 +49,6 @@
     </div>
     <script type="module">
         import { supabase } from './js/supabase.js'
-        
-        // تحميل إعدادات الموقع (اللوجو والاسم)
         async function loadSettings() {
             const { data } = await supabase.from('settings').select('*').eq('id', 1).single();
             if(data) {
@@ -80,8 +78,12 @@
             }
             localStorage.setItem('user', JSON.stringify(data));
             
-            if (data.role === 'admin' || data.role === 'maintenance_manager') window.location.href = 'admin.html';
-            else window.location.href = 'manager.html';
+            // التوجيه حسب الصلاحية
+            if (data.role === 'admin' || data.role === 'maintenance_manager') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'manager.html';
+            }
         });
     </script>
 </body>
