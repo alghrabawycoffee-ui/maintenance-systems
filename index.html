@@ -6,58 +6,55 @@
     <title>Maintenance System | تسجيل الدخول</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F4F6F9; --danger: #DD4B39; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { display: flex; height: 100vh; background-color: var(--bg); }
-        .brand-section { flex: 1; background-color: var(--primary); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
-        .brand-section h1 { font-size: 42px; font-weight: 800; margin-bottom: 10px; }
-        .login-section { flex: 1; display: flex; justify-content: center; align-items: center; background-color: white; }
-        .login-box { width: 100%; max-width: 400px; padding: 40px; }
-        .login-box h2 { font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
-        .login-box p { color: #777; margin-bottom: 30px; font-size: 15px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #333; font-size: 14px; }
-        .form-group input { width: 100%; padding: 14px 16px; border: 1px solid #D2D6DE; border-radius: 4px; font-size: 15px; background-color: #FAFAFA; }
-        .form-group input:focus { outline: none; border-color: var(--primary); background-color: white; }
-        .login-btn { width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; }
-        .login-btn:hover { background-color: var(--secondary); }
-        #error-msg { color: var(--danger); font-size: 14px; font-weight: 600; margin-top: 15px; text-align: center; display: none; }
+        body { font-family: 'Cairo', sans-serif; background-color: #2C3E50; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 8px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        h2 { color: #2C3E50; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: 'Cairo'; }
+        button { width: 100%; padding: 10px; background-color: #3498DB; color: white; border: none; border-radius: 4px; font-weight: bold; font-family: 'Cairo'; cursor: pointer; }
+        button:hover { background-color: #2980B9; }
+        #error { color: red; font-size: 14px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
-    <div class="brand-section">
-        <h1>Maintenance System</h1>
-        <p>نظام إدارة الصيانة والأصول</p>
+    <div class="login-box">
+        <h2>Maintenance System</h2>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="اسم المستخدم" required>
+            <input type="password" id="password" placeholder="كلمة المرور" required>
+            <button type="submit" id="btn">دخول</button>
+            <div id="error"></div>
+        </form>
     </div>
-    <div class="login-section">
-        <div class="login-box">
-            <h2>تسجيل الدخول</h2>
-            <p>أدخل بياناتك للوصول إلى لوحة التحكم</p>
-            <form id="login-form">
-                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="username" required></div>
-                <div class="form-group"><label>كلمة المرور</label><input type="password" id="password" required></div>
-                <button type="submit" class="login-btn" id="submit-btn">دخول</button>
-                <div id="error-msg"></div>
-            </form>
-        </div>
-    </div>
+
     <script type="module">
         import { supabase } from './js/supabase.js'
+
         document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btn');
+            const err = document.getElementById('error');
+            btn.innerText = 'جاري التحقق...';
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('submit-btn');
-            const err = document.getElementById('error-msg');
-            
-            btn.innerText = 'جاري التحقق...'; btn.disabled = true; err.style.display = 'none';
-            
-            const { data, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).maybeSingle();
-            
+
+            // محاولة الدخول
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('username', username)
+                .eq('password', password)
+                .single(); // single بتجيب صف واحد بس
+
+            // لو فيه خطأ أو البيانات فاضية
             if (error || !data) {
-                err.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة!"; err.style.display = 'block';
-                btn.innerText = 'دخول'; btn.disabled = false; return;
+                err.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة!";
+                err.style.display = 'block';
+                btn.innerText = 'دخول';
+                return;
             }
+
+            // لو دخل صح
             localStorage.setItem('user', JSON.stringify(data));
             
             if (data.role === 'admin') window.location.href = 'admin.html';
