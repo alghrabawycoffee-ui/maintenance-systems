@@ -10,6 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; min-height: 100vh; background-color: var(--bg); color: var(--text-main); }
         
+        /* Sidebar */
         .sidebar { width: 260px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; }
         .sidebar-header { padding: 30px 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .sidebar-header img { width: 120px; border-radius: 8px; margin-bottom: 15px; }
@@ -21,6 +22,7 @@
         .logout-btn { width: 100%; padding: 12px; background-color: rgba(220, 38, 38, 0.1); color: #FCA5A5; border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .logout-btn:hover { background-color: var(--danger); color: white; }
 
+        /* Main Content */
         .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .page-title { font-size: 26px; font-weight: 800; color: var(--sidebar-bg); }
@@ -64,7 +66,7 @@
 </head>
 <body>
     <aside class="sidebar">
-        <div class="sidebar-header"><img src="logo.jpg" alt="الغرباوي" onerror="this.style.display='none'"><h2>الغرباوي</h2></div>
+        <div class="sidebar-header"><img id="sidebar-logo" src="logo.jpg" alt="الغرباوي" onerror="this.style.display='none'"><h2 id="sidebar-company-name">الغرباوي</h2></div>
         <div class="nav-menu">
             <button id="nav-tickets" class="nav-item active" onclick="showTab('tickets')">بلاغات الفرع</button>
             <button id="nav-assets" class="nav-item" onclick="showTab('assets')">عهد الفرع</button>
@@ -136,6 +138,16 @@
         if (!user || user.role !== 'branch_manager') window.location.href = 'index.html';
 
         document.getElementById('user-info').innerText = `👤 ${user.username}`;
+
+        // تحميل إعدادات الموقع (اللوجو واسم الشركة)
+        async function loadSettings() {
+            const { data } = await supabase.from('settings').select('*').eq('id', 1).single();
+            if(data) {
+                document.documentElement.style.setProperty('--brand', data.primary_color);
+                document.getElementById('sidebar-company-name').innerText = data.company_name;
+                document.getElementById('sidebar-logo').src = data.logo_url;
+            }
+        }
 
         window.logout = function() { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = function(tabId) {
@@ -221,7 +233,7 @@
             btn.innerText = 'إرسال البلاغ'; btn.disabled = false;
         });
 
-        loadMyAssets(); loadMyTickets();
+        loadSettings(); loadMyAssets(); loadMyTickets();
     </script>
 </body>
 </html>
