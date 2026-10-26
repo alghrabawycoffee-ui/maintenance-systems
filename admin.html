@@ -12,7 +12,7 @@
         .nav-tabs button.active { background: #007bff; color: white; }
         .content-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none; }
         .content-box.active { display: block; }
-        input, select, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+        input, select, textarea, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; }
         button[type="submit"] { background: #28a745; color: white; border: none; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 10px; border: 1px solid #ddd; text-align: right; }
@@ -20,19 +20,20 @@
         .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; color: white; }
         .status-working { background: #28a745; }
         .status-broken { background: #dc3545; }
+        .status-open { background: #ffc107; color: black; }
+        .status-closed { background: #6c757d; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h2>لوحة تحكم الأدمن</h2>
         <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
     </div>
 
-    <!-- أزرار التنقل -->
     <div class="nav-tabs">
         <button id="btn-branches" onclick="showTab('branches')">إدارة الفروع</button>
-        <button id="btn-assets" class="active" onclick="showTab('assets')">إدارة العهد</button>
+        <button id="btn-assets" onclick="showTab('assets')">إدارة العهد</button>
+        <button id="btn-tickets" class="active" onclick="showTab('tickets')">البلاغات الواردة</button>
     </div>
 
     <!-- قسم الفروع -->
@@ -50,13 +51,13 @@
     </div>
 
     <!-- قسم العهد -->
-    <div id="tab-assets" class="content-box active">
+    <div id="tab-assets" class="content-box">
         <h3>إضافة عهدة جديدة</h3>
         <form id="add-asset-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <input type="text" id="asset-code" placeholder="كود العهدة (مثال: AST-001)" required>
+            <input type="text" id="asset-code" placeholder="كود العهدة (AST-001)" required>
             <input type="text" id="asset-name" placeholder="اسم العهدة" required>
             <select id="asset-type" required>
-                <option value="">نوع العهدة...</option>
+                <option value="">النوع...</option>
                 <option value="ماكينة">ماكينة</option>
                 <option value="تكييف">تكييف</option>
                 <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
@@ -65,20 +66,28 @@
             </select>
             <select id="asset-branch" required>
                 <option value="">اختر الفرع...</option>
-                <!-- الفروع هتتحمل هنا بالـ JS -->
             </select>
             <button type="submit">إضافة العهدة</button>
         </form>
-
         <h3 style="margin-top: 30px;">قائمة العهد</h3>
         <table id="assets-table">
+            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الفرع</th><th>الحالة</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- قسم البلاغات -->
+    <div id="tab-tickets" class="content-box active">
+        <h3>البلاغات الواردة من الفروع</h3>
+        <table id="tickets-table">
             <thead>
                 <tr>
-                    <th>كود العهدة</th>
-                    <th>الاسم</th>
-                    <th>النوع</th>
+                    <th>رقم البلاغ</th>
                     <th>الفرع</th>
+                    <th>العهدة</th>
+                    <th>الوصف</th>
                     <th>الحالة</th>
+                    <th>إجراء</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -87,43 +96,24 @@
 
     <script type="module">
         import { supabase } from './js/supabase.js'
-
-        // التأكد من تسجيل الدخول
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') window.location.href = 'index.html';
 
-        // تسجيل الخروج
-        window.logout = function() {
-            localStorage.removeItem('user');
-            window.location.href = 'index.html';
-        }
-
-        // التبديل بين التابات
+        window.logout = function() { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = function(tabId) {
             document.querySelectorAll('.content-box').forEach(box => box.classList.remove('active'));
             document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(`tab-${tabId}`).classList.add('active');
             document.getElementById(`btn-${tabId}`).classList.add('active');
         }
 
-        // ================= إدارة الفروع =================
         async function loadBranches() {
-            const { data, error } = await supabase.from('branches').select('*').order('id', { ascending: false });
+            const { data } = await supabase.from('branches').select('*').order('id');
             const tbody = document.querySelector('#branches-table tbody');
             const selectBranch = document.getElementById('asset-branch');
-            
-            tbody.innerHTML = '';
-            selectBranch.innerHTML = '<option value="">اختر الفرع...</option>'; // تصفير القائمة
-
-            if (error) return console.error(error);
-
-            data.forEach(branch => {
-                // إضافة للجدول
-                const date = new Date(branch.created_at).toLocaleDateString('ar-EG');
-                tbody.innerHTML += `<tr><td>${branch.id}</td><td>${branch.name}</td><td>${date}</td></tr>`;
-                
-                // إضافة للقائمة المنسدلة في العهد
+            tbody.innerHTML = ''; selectBranch.innerHTML = '<option value="">اختر الفرع...</option>';
+            data?.forEach(branch => {
+                tbody.innerHTML += `<tr><td>${branch.id}</td><td>${branch.name}</td><td>${new Date(branch.created_at).toLocaleDateString('ar-EG')}</td></tr>`;
                 selectBranch.innerHTML += `<option value="${branch.id}">${branch.name}</option>`;
             });
         }
@@ -131,47 +121,20 @@
         document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('branch-name').value;
-            const { error } = await supabase.from('branches').insert([{ name }]);
-            if (error) alert('خطأ: ' + error.message);
-            else {
-                alert('تم إضافة الفرع!');
-                document.getElementById('branch-name').value = '';
-                loadBranches();
-            }
+            await supabase.from('branches').insert([{ name }]);
+            document.getElementById('branch-name').value = '';
+            loadBranches();
         });
 
-        // ================= إدارة العهد =================
         async function loadAssets() {
-            // بنجيب بيانات العهد مع اسم الفرع المرتبط بيها
-            const { data, error } = await supabase.from('assets').select(`
-                *,
-                branches (name)
-            `).order('id', { ascending: false });
-
+            const { data } = await supabase.from('assets').select(`*, branches (name)`).order('id', { ascending: false });
             const tbody = document.querySelector('#assets-table tbody');
             tbody.innerHTML = '';
-
-            if (error) return console.error(error);
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد عهد مضافة</td></tr>';
-                return;
-            }
-
-            data.forEach(asset => {
+            data?.forEach(asset => {
                 const branchName = asset.branches ? asset.branches.name : 'غير محدد';
                 const statusClass = asset.status === 'working' ? 'status-working' : 'status-broken';
                 const statusText = asset.status === 'working' ? 'شغال' : 'عطلان';
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${asset.code}</td>
-                        <td>${asset.name}</td>
-                        <td>${asset.type || '-'}</td>
-                        <td>${branchName}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr><td>${asset.code}</td><td>${asset.name}</td><td>${asset.type}</td><td>${branchName}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td></tr>`;
             });
         }
 
@@ -181,20 +144,48 @@
             const name = document.getElementById('asset-name').value;
             const type = document.getElementById('asset-type').value;
             const branch_id = document.getElementById('asset-branch').value;
-
-            const { error } = await supabase.from('assets').insert([{ code, name, type, branch_id }]);
-
-            if (error) alert('خطأ في إضافة العهدة: ' + error.message);
-            else {
-                alert('تم إضافة العهدة بنجاح!');
-                document.getElementById('add-asset-form').reset();
-                loadAssets();
-            }
+            await supabase.from('assets').insert([{ code, name, type, branch_id }]);
+            document.getElementById('add-asset-form').reset();
+            loadAssets();
         });
 
-        // تشغيل الدوال أول ما الصفحة تفتح
+        async function loadTickets() {
+            const { data } = await supabase.from('tickets').select(`*, branches (name), assets (name)`).order('id', { ascending: false });
+            const tbody = document.querySelector('#tickets-table tbody');
+            tbody.innerHTML = '';
+            if(!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد بلاغات حالياً</td></tr>';
+                return;
+            }
+            data.forEach(ticket => {
+                let actionBtn = '';
+                let statusClass = 'status-open';
+                if (ticket.status === 'open') {
+                    actionBtn = `<button onclick="closeTicket(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">تم الإصلاح</button>`;
+                } else {
+                    statusClass = 'status-closed';
+                }
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${ticket.id}</td>
+                        <td>${ticket.branches?.name || '-'}</td>
+                        <td>${ticket.assets?.name || '-'}</td>
+                        <td>${ticket.description}</td>
+                        <td><span class="status-badge ${statusClass}">${ticket.status === 'open' ? 'مفتوح' : 'مغلق'}</span></td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.closeTicket = async function(id) {
+            await supabase.from('tickets').update({ status: 'closed' }).eq('id', id);
+            loadTickets();
+        }
+
         loadBranches();
         loadAssets();
+        loadTickets();
     </script>
 </body>
 </html>
