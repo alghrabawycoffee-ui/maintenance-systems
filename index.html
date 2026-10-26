@@ -34,32 +34,46 @@
             const btn = document.getElementById('btn');
             const err = document.getElementById('error');
             btn.innerText = 'جاري التحقق...';
+            err.style.display = 'none';
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // محاولة الدخول
+            // البحث عن المستخدم
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
                 .eq('username', username)
                 .eq('password', password)
-                .single(); // single بتجيب صف واحد بس
+                .maybeSingle(); 
 
-            // لو فيه خطأ أو البيانات فاضية
-            if (error || !data) {
+            if (error) {
+                err.innerText = "حدث خطأ في الاتصال: " + error.message;
+                err.style.display = 'block';
+                btn.innerText = 'دخول';
+                return;
+            }
+
+            if (!data) {
                 err.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة!";
                 err.style.display = 'block';
                 btn.innerText = 'دخول';
                 return;
             }
 
-            // لو دخل صح
+            // تسجيل الدخول
             localStorage.setItem('user', JSON.stringify(data));
             
-            if (data.role === 'admin') window.location.href = 'admin.html';
-            else if (data.role === 'maintenance_manager') window.location.href = 'maintenance.html';
-            else window.location.href = 'manager.html';
+            // التوجيه الذكي (بيحول الكلمة لحروف صغيرة عشان ميبقاش فيه لبس)
+            const userRole = data.role.toLowerCase().trim();
+
+            if (userRole === 'admin') {
+                window.location.href = 'admin.html';
+            } else if (userRole === 'maintenance_manager') {
+                window.location.href = 'maintenance.html';
+            } else {
+                window.location.href = 'manager.html';
+            }
         };
     </script>
 </body>
