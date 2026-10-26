@@ -3,25 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>maintenance system</title>
+    <title>Maintenance System | لوحة التحكم</title>
     
-    <!-- Icons & Fonts & Charts -->
+    <!-- FontAwesome & Google Fonts & Chart.js & SheetJS (لإكسيل) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        :root { --primary: #2C3E50; --secondary: #34495E; --accent: #3498DB; --bg: #F4F6F9; --sidebar: #222D32; --border: #D2D6DE; --text: #333; }
+        :root { 
+            --primary: #2C3E50; 
+            --secondary: #34495E; 
+            --accent: #3498DB; 
+            --bg: #F4F6F9; 
+            --sidebar: #222D32; 
+            --border: #D2D6DE; 
+            --text: #333; 
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; height: 100vh; background: var(--bg); color: var(--text); font-size: 14px; overflow: hidden; }
 
         /* Sidebar */
-        .sidebar { width: 260px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; transition: 0.3s; z-index: 10; }
-        .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 20px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
-        .sidebar-header i { color: var(--accent); margin-left: 10px; }
+        .sidebar { width: 260px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
+        .sidebar-header i { color: var(--accent); margin-left: 10px; font-size: 20px; }
         .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto; }
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
-        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; font-size: 16px; }
+        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
         .nav-btn:hover { background: #1A2226; color: white; }
         .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
@@ -34,19 +43,16 @@
         .header-left { display: flex; align-items: center; gap: 20px; }
         .global-search { display: flex; align-items: center; background: rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 12px; }
         .global-search input { background: transparent; border: none; color: white; padding: 5px; outline: none; font-family: 'Cairo'; width: 250px; }
-        .global-search input::placeholder { color: #B8C7CE; }
         .header-right { display: flex; align-items: center; gap: 20px; }
-        .header-right i { font-size: 18px; cursor: pointer; transition: 0.2s; }
-        .header-right i:hover { color: var(--accent); }
+        .header-right i { font-size: 18px; cursor: pointer; }
         .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 20px; }
         
         .content-body { flex: 1; padding: 25px; overflow-y: auto; }
 
-        /* Titles & Cards */
-        .page-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        /* Cards & Titles */
+        .page-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
         .cards-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .card { background: white; border-radius: 6px; padding: 20px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: transform 0.3s; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 6px; padding: 20px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .card-info h4 { font-size: 14px; color: #777; font-weight: 600; margin-bottom: 8px; }
         .card-info h2 { font-size: 32px; color: var(--primary); }
         .card-icon { font-size: 45px; color: #E5E7EB; }
@@ -61,7 +67,7 @@
         tbody tr:nth-child(even) { background: #FAFAFA; }
         tbody tr:hover { background: #EEF3F7; }
 
-        /* Forms */
+        /* Forms & Buttons */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--primary); }
@@ -72,9 +78,9 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--secondary); }
         .btn-success { background: #00A65A; color: white; }
-        .btn-success:hover { background: #008D4C; }
         .btn-danger { background: #DD4B39; color: white; }
-        .btn-danger:hover { background: #C23321; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: #F4F6F9; }
 
         .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; color: white; display: inline-block; }
         .bg-green { background: #00A65A; }
@@ -90,7 +96,7 @@
 
         /* Modal */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 600px; max-width: 90%; border-radius: 8px; padding: 25px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content { background: white; width: 650px; max-width: 90%; border-radius: 8px; padding: 25px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
         
         /* Timeline */
@@ -98,34 +104,47 @@
         .timeline-item { margin-bottom: 20px; position: relative; }
         .timeline-item::before { content: ''; position: absolute; right: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid white; }
         .timeline-date { font-size: 12px; color: #777; margin-bottom: 5px; }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; display: block; height: auto; overflow: visible; }
+            .sidebar, .top-header, .nav-menu, .btn, .modal { display: none !important; }
+            .main-content { overflow: visible; display: block; }
+            .content-body { padding: 0; overflow: visible; }
+            .tab { display: none !important; }
+            .tab.active { display: block !important; }
+            .card, .table-container { border: 1px solid #000; box-shadow: none; margin-bottom: 20px; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 15px; }
+            .print-header h1 { font-size: 28px; margin-bottom: 5px; }
+            .print-header p { font-size: 14px; color: #555; }
+            th, td { border: 1px solid #000; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-cogs"></i> GLPI-Lite</div>
+        <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance System</div>
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('dash', this)"><i class="fas fa-tachometer-alt"></i> لوحة القيادة</button>
-            <button class="nav-btn" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر (Tickets)</button>
-            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> الأصول (Assets)</button>
-            <button class="nav-btn" onclick="showTab('branches', this)"><i class="fas fa-sitemap"></i> الفروع</button>
-            
-            <button class="nav-btn admin-only" onclick="showTab('users', this)" style="display: none;"><i class="fas fa-users"></i> المستخدمين</button>
-            <button class="nav-btn admin-only" onclick="showTab('settings', this)" style="display: none;"><i class="fas fa-wrench"></i> الإعدادات</button>
+            <button class="nav-btn" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> سجل البلاغات</button>
+            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-server"></i> إدارة الأصول</button>
+            <button class="nav-btn" onclick="showTab('branches', this)"><i class="fas fa-building"></i> إدارة الفروع</button>
+            <button class="nav-btn admin-only" onclick="showTab('users', this)" style="display: none;"><i class="fas fa-users"></i> إدارة المستخدمين</button>
+            <button class="nav-btn admin-only" onclick="showTab('settings', this)" style="display: none;"><i class="fas fa-cogs"></i> إعدادات النظام</button>
         </div>
-        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button></div>
+        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="top-header">
             <div class="header-left">
-                <div class="global-search"><i class="fas fa-search"></i><input type="text" placeholder="بحث سريع..."></div>
+                <div class="global-search"><i class="fas fa-search"></i><input type="text" placeholder="بحث سريع في النظام..."></div>
             </div>
             <div class="header-right">
                 <i class="fas fa-bell"></i>
-                <div class="user-profile"><span id="header-username">Admin</span><i class="fas fa-user-circle" style="font-size: 26px;"></i></div>
+                <div class="user-profile"><span id="header-username">مسؤول النظام</span><i class="fas fa-user-circle" style="font-size: 26px;"></i></div>
             </div>
         </div>
 
@@ -133,44 +152,65 @@
             
             <!-- 1. Dashboard -->
             <div id="tab-dash" class="tab active">
-                <div class="page-title"><i class="fas fa-tachometer-alt"></i> لوحة القيادة</div>
+                <div class="print-header">
+                    <h1>Maintenance System</h1>
+                    <p>تقرير لوحة القيادة العامة - <span id="print-date"></span></p>
+                </div>
+                <div class="page-title">
+                    <span><i class="fas fa-tachometer-alt"></i> لوحة القيادة</span>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> طباعة التقرير</button>
+                </div>
                 <div class="cards-row">
-                    <div class="card"><div class="card-info"><h4>إجمالي الأصول</h4><h2 id="st-assets">0</h2></div><i class="fas fa-boxes card-icon"></i></div>
-                    <div class="card"><div class="card-info"><h4>تذاكر مفتوحة</h4><h2 id="st-tickets" style="color: #DD4B39;">0</h2></div><i class="fas fa-ticket-alt card-icon" style="color: #DD4B39;"></i></div>
+                    <div class="card"><div class="card-info"><h4>إجمالي الأصول المسجلة</h4><h2 id="st-assets">0</h2></div><i class="fas fa-server card-icon"></i></div>
+                    <div class="card"><div class="card-info"><h4>البلاغات المفتوحة</h4><h2 id="st-tickets" style="color: #DD4B39;">0</h2></div><i class="fas fa-exclamation-circle card-icon" style="color: #DD4B39;"></i></div>
                 </div>
                 <div class="card" style="display: block; margin-top: 25px;">
-                    <h4 style="margin-bottom: 15px; color: var(--primary); font-weight:700;">حالة التذاكر</h4>
+                    <h4 style="margin-bottom: 15px; color: var(--primary); font-weight:700;">إحصائيات البلاغات</h4>
                     <div style="height: 250px;"><canvas id="glpiChart"></canvas></div>
                 </div>
             </div>
 
             <!-- 2. Assets -->
             <div id="tab-assets" class="tab">
-                <div class="page-title"><i class="fas fa-desktop"></i> إدارة الأصول (Assets)</div>
+                <div class="print-header">
+                    <h1>Maintenance System</h1>
+                    <p>تقرير سجل الأصول - <span class="print-dates"></span></p>
+                </div>
+                <div class="page-title">
+                    <span><i class="fas fa-server"></i> إدارة الأصول (Assets)</span>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> طباعة السجل</button>
+                </div>
+                
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">إضافة أصل جديد (تفاصيل كاملة)</span></div>
+                    <div class="table-header">
+                        <span class="table-title">إضافة أصل جديد (تفاصيل كاملة)</span>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-success" onclick="downloadTemplate()"><i class="fas fa-download"></i> تحميل قالب فارغ</button>
+                            <label class="btn btn-primary" style="margin:0;">
+                                <i class="fas fa-file-excel"></i> استيراد من Excel
+                                <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;" onchange="importExcel(event)">
+                            </label>
+                        </div>
+                    </div>
                     <div style="padding: 20px;">
                         <div class="form-grid">
                             <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="a-code" class="form-control" placeholder="AST-001"></div>
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control" placeholder="كمبيوتر Dell"></div>
+                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control" placeholder="جهاز كمبيوتر"></div>
                         </div>
                         <div class="form-grid">
                             <div class="form-group"><label class="form-label">الماركة</label><input type="text" id="a-brand" class="form-control" placeholder="Dell"></div>
-                            <div class="form-group"><label class="form-label">الموديل</label><input type="text" id="a-model" class="form-control" placeholder="Optiplex 7090"></div>
+                            <div class="form-group"><label class="form-label">الموديل</label><input type="text" id="a-model" class="form-control" placeholder="Optiplex"></div>
                         </div>
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الرقم التسلسلي (Serial)</label><input type="text" id="a-serial" class="form-control"></div>
-                            <div class="form-group"><label class="form-label">تاريخ الشراء</label><input type="date" id="a-purchase" class="form-control"></div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">تاريخ انتهاء الضمان</label><input type="date" id="a-warranty" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">الرقم التسلسلي</label><input type="text" id="a-serial" class="form-control"></div>
                             <div class="form-group"><label class="form-label">الفرع</label><select id="a-branch" class="form-control"></select></div>
                         </div>
                         <button class="btn btn-primary" onclick="addAsset()"><i class="fas fa-plus"></i> حفظ الأصل</button>
                     </div>
                 </div>
+
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">الأصول المسجلة</span></div>
+                    <div class="table-header"><span class="table-title">قائمة الأصول</span></div>
                     <table id="tbl-assets">
                         <thead><tr><th>الكود</th><th>الاسم</th><th>الماركة/الموديل</th><th>الفرع</th><th>الحالة</th></tr></thead>
                         <tbody></tbody>
@@ -180,12 +220,20 @@
 
             <!-- 3. Tickets -->
             <div id="tab-tickets" class="tab">
-                <div class="page-title"><i class="fas fa-ticket-alt"></i> إدارة التذاكر (Tickets)</div>
+                <div class="print-header">
+                    <h1>Maintenance System</h1>
+                    <p>تقرير سجل البلاغات - <span class="print-dates"></span></p>
+                </div>
+                <div class="page-title">
+                    <span><i class="fas fa-ticket-alt"></i> سجل البلاغات (Tickets)</span>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> طباعة السجل</button>
+                </div>
+                
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">إنشاء تذكرة جديدة</span></div>
+                    <div class="table-header"><span class="table-title">إنشاء بلاغ جديد</span></div>
                     <div style="padding: 20px;">
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">عنوان التذكرة</label><input type="text" id="t-title" class="form-control" placeholder="عطل في التكييف"></div>
+                            <div class="form-group"><label class="form-label">عنوان البلاغ</label><input type="text" id="t-title" class="form-control" placeholder="عطل في التكييف"></div>
                             <div class="form-group"><label class="form-label">الأصل (العهدة)</label><select id="t-asset" class="form-control"></select></div>
                         </div>
                         <div class="form-grid">
@@ -193,13 +241,14 @@
                             <div class="form-group"><label class="form-label">التصنيف</label><select id="t-category" class="form-control"><option value="كهرباء">كهرباء</option><option value="ميكانيكا">ميكانيكا</option><option value="شبكات">شبكات</option><option value="أخرى">أخرى</option></select></div>
                         </div>
                         <div class="form-group"><label class="form-label">وصف المشكلة</label><textarea id="t-desc" class="form-control" rows="3"></textarea></div>
-                        <button class="btn btn-primary" onclick="addTicket()"><i class="fas fa-plus"></i> إنشاء التذكرة</button>
+                        <button class="btn btn-primary" onclick="addTicket()"><i class="fas fa-plus"></i> تسجيل البلاغ</button>
                     </div>
                 </div>
+
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">التذاكر المسجلة</span></div>
+                    <div class="table-header"><span class="table-title">البلاغات المسجلة</span></div>
                     <table id="tbl-tickets">
-                        <thead><tr><th>#</th><th>العنوان</th><th>الأصل</th><th>الأولوية</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+                        <thead><tr><th>رقم البلاغ</th><th>العنوان</th><th>الأصل</th><th>الأولوية</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -207,51 +256,69 @@
 
             <!-- 4. Branches -->
             <div id="tab-branches" class="tab">
-                <div class="page-title"><i class="fas fa-sitemap"></i> الفروع</div>
+                <div class="print-header">
+                    <h1>Maintenance System</h1>
+                    <p>تقرير سجل الفروع - <span class="print-dates"></span></p>
+                </div>
+                <div class="page-title">
+                    <span><i class="fas fa-building"></i> إدارة الفروع</span>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> طباعة السجل</button>
+                </div>
+                
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">إضافة فرع</span></div>
+                    <div class="table-header"><span class="table-title">إضافة فرع جديد</span></div>
                     <div style="padding: 20px; display: flex; gap: 15px; align-items: flex-end;">
                         <div class="form-group" style="flex:1; margin:0;"><label class="form-label">اسم الفرع</label><input type="text" id="branch-name" class="form-control"></div>
                         <button class="btn btn-success" onclick="addBranch()"><i class="fas fa-plus"></i> حفظ</button>
                     </div>
                 </div>
+
                 <div class="table-container">
                     <div class="table-header"><span class="table-title">الفروع المسجلة</span></div>
-                    <table id="tbl-branches"><thead><tr><th>الكود</th><th>الاسم</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-branches"><thead><tr><th>كود الفرع</th><th>اسم الفرع</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
             <!-- 5. Users -->
             <div id="tab-users" class="tab">
-                <div class="page-title"><i class="fas fa-users"></i> المستخدمين</div>
+                <div class="print-header">
+                    <h1>Maintenance System</h1>
+                    <p>تقرير سجل المستخدمين - <span class="print-dates"></span></p>
+                </div>
+                <div class="page-title">
+                    <span><i class="fas fa-users"></i> إدارة المستخدمين</span>
+                    <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> طباعة السجل</button>
+                </div>
+                
                 <div class="table-container">
                     <div class="table-header"><span class="table-title">إضافة مستخدم جديد</span></div>
                     <div style="padding: 20px;">
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الاسم</label><input type="text" id="u-name" class="form-control"></div>
-                            <div class="form-group"><label class="form-label">الباسورد</label><input type="text" id="u-pass" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">اسم المستخدم</label><input type="text" id="u-name" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">كلمة المرور</label><input type="text" id="u-pass" class="form-control"></div>
                         </div>
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الصلاحية</label><select id="u-role" class="form-control" onchange="toggleBranchField()"><option value="branch_manager">مدير فرع</option><option value="maintenance_manager">مدير صيانة</option><option value="admin">أدمن</option></select></div>
+                            <div class="form-group"><label class="form-label">الصلاحية</label><select id="u-role" class="form-control" onchange="toggleBranchField()"><option value="branch_manager">مدير فرع</option><option value="maintenance_manager">مدير صيانة</option><option value="admin">مسؤول النظام (أدمن)</option></select></div>
                             <div class="form-group" id="u-branch-group"><label class="form-label">الفرع التابع له</label><select id="u-branch" class="form-control"></select></div>
                         </div>
                         <button class="btn btn-primary" onclick="addUser()"><i class="fas fa-plus"></i> إضافة</button>
                     </div>
                 </div>
+
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">المستخدمين المسجلين</span></div>
+                    <div class="table-header"><span class="table-title">المستخدمون المسجلون</span></div>
                     <table id="tbl-users"><thead><tr><th>الاسم</th><th>الصلاحية</th><th>الفرع</th><th>حذف</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
             <!-- 6. Settings -->
             <div id="tab-settings" class="tab">
-                <div class="page-title"><i class="fas fa-wrench"></i> إعدادات الموقع</div>
+                <div class="page-title"><span><i class="fas fa-cogs"></i> إعدادات النظام</span></div>
                 <div class="table-container">
                     <div class="table-header"><span class="table-title">الإعدادات العامة</span></div>
                     <div style="padding: 20px; max-width: 500px;">
-                        <div class="form-group"><label class="form-label">اسم الشركة</label><input type="text" id="set-name" class="form-control"></div>
-                        <div class="form-group"><label class="form-label">رابط اللوجو (URL)</label><input type="text" id="set-logo" class="form-control"></div>
+                        <div class="form-group"><label class="form-label">اسم الشركة / المؤسسة</label><input type="text" id="set-name" class="form-control"></div>
+                        <div class="form-group"><label class="form-label">رابط الشعار (Logo URL)</label><input type="text" id="set-logo" class="form-control"></div>
                         <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> حفظ التعديلات</button>
                     </div>
                 </div>
@@ -264,16 +331,16 @@
     <div id="ticket-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modal-title" style="color: var(--primary);">تفاصيل التذكرة</h3>
+                <h3 id="modal-title" style="color: var(--primary);">تفاصيل البلاغ</h3>
                 <button onclick="document.getElementById('ticket-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
             </div>
             <div id="modal-body"></div>
             <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
-                <label class="form-label">إضافة تحديث (Timeline):</label>
-                <input type="text" id="update-text" class="form-control" placeholder="أضف تحديث...">
+                <label class="form-label">إضافة إجراء / تحديث:</label>
+                <input type="text" id="update-text" class="form-control" placeholder="أضف تفاصيل الإجراء...">
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn btn-primary" onclick="addUpdate()"><i class="fas fa-plus"></i> إضافة تحديث</button>
-                    <button class="btn btn-danger" onclick="closeTicket()">إغلاق التذكرة</button>
+                    <button class="btn btn-primary" onclick="addUpdate()"><i class="fas fa-plus"></i> إضافة</button>
+                    <button class="btn btn-danger" onclick="closeTicket()">إغلاق البلاغ</button>
                 </div>
             </div>
         </div>
@@ -284,8 +351,14 @@
         const user = JSON.parse(localStorage.getItem('user'));
         if(!user) window.location.href = 'index.html';
 
+        // تفعيل الصلاحيات
         if(user.role === 'admin') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
         document.getElementById('header-username').innerText = user.username;
+
+        // ضبط تاريخ الطباعة
+        const today = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('print-date').innerText = today;
+        document.querySelectorAll('.print-dates').forEach(el => el.innerText = today);
 
         window.logout = () => { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = (id, btn) => {
@@ -301,7 +374,7 @@
         let myChart = null;
 
         async function loadData() {
-            // Branches
+            // جلب الفروع
             const { data: branches } = await supabase.from('branches').select('*');
             const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
             const selB = document.getElementById('a-branch'); const selU = document.getElementById('u-branch');
@@ -312,7 +385,7 @@
                 selU.innerHTML += `<option value="${b.id}">${b.name}</option>`;
             });
 
-            // Assets
+            // جلب الأصول
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             document.getElementById('st-assets').innerText = assets?.length || 0;
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
@@ -323,24 +396,24 @@
                 selT.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`;
             });
 
-            // Tickets
+            // جلب البلاغات
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').order('id', {ascending:false});
             document.getElementById('st-tickets').innerText = tickets?.filter(t => t.status !== 'closed').length || 0;
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
-                let badge = t.status === 'open' ? '<span class="status-badge bg-orange">مفتوح</span>' : (t.status === 'closed' ? '<span class="status-badge bg-gray">مغلق</span>' : '<span class="status-badge bg-blue">جاري العمل</span>');
+                let badge = t.status === 'open' ? '<span class="status-badge bg-orange">مفتوح</span>' : (t.status === 'closed' ? '<span class="status-badge bg-gray">مغلق</span>' : '<span class="status-badge bg-blue">قيد المعالجة</span>');
                 tbodyT.innerHTML += `<tr>
                     <td>#${t.id}</td><td>${t.title}</td><td>${t.assets?.name || '-'}</td><td>${t.priority}</td><td>${badge}</td>
                     <td><button class="btn btn-primary" style="padding: 5px 10px;" onclick="openTicket(${t.id})"><i class="fas fa-eye"></i> عرض</button></td>
                 </tr>`;
             });
 
-            // Users (Admin Only)
+            // جلب المستخدمين والإعدادات (للأدمن فقط)
             if(user.role === 'admin') {
                 const { data: users } = await supabase.from('users').select('*, branches(name)');
                 const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
                 users?.forEach(u => {
-                    const roleName = u.role === 'admin' ? 'أدمن' : (u.role === 'maintenance_manager' ? 'مدير صيانة' : 'مدير فرع');
+                    const roleName = u.role === 'admin' ? 'مسؤول النظام' : (u.role === 'maintenance_manager' ? 'مدير صيانة' : 'مدير فرع');
                     tbodyU.innerHTML += `<tr><td>${u.username}</td><td>${roleName}</td><td>${u.branches?.name || 'كل الفروع'}</td><td><button class="btn btn-danger" style="padding: 5px 10px;" onclick="delUser(${u.id})"><i class="fas fa-trash"></i></button></td></tr>`;
                 });
                 
@@ -351,14 +424,14 @@
                 }
             }
 
-            // Chart
+            // الرسم البياني
             const ctx = document.getElementById('glpiChart').getContext('2d');
             if(myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['مفتوحة', 'جاري العمل', 'مغلقة'],
-                    datasets: [{ label: 'التذاكر', data: [
+                    labels: ['مفتوحة', 'قيد المعالجة', 'مغلقة'],
+                    datasets: [{ label: 'البلاغات', data: [
                         tickets?.filter(t => t.status === 'open').length || 0,
                         tickets?.filter(t => t.status === 'in_progress').length || 0,
                         tickets?.filter(t => t.status === 'closed').length || 0
@@ -369,27 +442,21 @@
         }
         loadData();
 
-        // Operations
-        window.addBranch = async () => {
-            const name = document.getElementById('branch-name').value;
-            if(name) { await supabase.from('branches').insert([{ name }]); document.getElementById('branch-name').value = ''; loadData(); }
-        };
-
+        // إدارة الأصول
         window.addAsset = async () => {
             const code = document.getElementById('a-code').value;
             const name = document.getElementById('a-name').value;
             const brand = document.getElementById('a-brand').value;
             const model = document.getElementById('a-model').value;
             const serial = document.getElementById('a-serial').value;
-            const purchase = document.getElementById('a-purchase').value || null;
-            const warranty = document.getElementById('a-warranty').value || null;
             const branch_id = document.getElementById('a-branch').value;
             if(code && name && branch_id) { 
-                await supabase.from('assets').insert([{ code, name, brand, model, serial_number: serial, purchase_date: purchase, warranty_date: warranty, branch_id }]); 
+                await supabase.from('assets').insert([{ code, name, brand, model, serial_number: serial, branch_id }]); 
                 loadData(); 
-            } else { alert('املأ الكود والاسم والفرع'); }
+            } else { alert('الرجاء إدخال الكود والاسم والفرع.'); }
         };
 
+        // إدارة البلاغات
         window.addTicket = async () => {
             const title = document.getElementById('t-title').value;
             const asset_id = document.getElementById('t-asset').value;
@@ -401,14 +468,14 @@
                 await supabase.from('tickets').insert([{ title, asset_id, branch_id: asset.branch_id, priority, category, description, created_by: user.id }]);
                 await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
                 loadData();
-            } else { alert('املأ بيانات التذكرة'); }
+            } else { alert('الرجاء إدخال كافة بيانات البلاغ.'); }
         };
 
         window.openTicket = async (id) => {
             const { data: ticket } = await supabase.from('tickets').select('*, assets(name)').eq('id', id).single();
             const { data: updates } = await supabase.from('ticket_updates').select('*').eq('ticket_id', id).order('created_at', {ascending:true});
             
-            document.getElementById('modal-title').innerText = `تذكرة #${id} - ${ticket.title}`;
+            document.getElementById('modal-title').innerText = `تفاصيل البلاغ #${id} - ${ticket.title}`;
             
             let timelineHtml = '<div class="timeline">';
             if(updates && updates.length > 0) {
@@ -416,7 +483,7 @@
                     timelineHtml += `<div class="timeline-item"><div class="timeline-date">${new Date(u.created_at).toLocaleString('ar-EG')}</div><div>${u.update_text}</div></div>`;
                 });
             } else {
-                timelineHtml += '<p style="color:#777;">لا توجد تحديثات.</p>';
+                timelineHtml += '<p style="color:#777;">لا توجد إجراءات مسجلة.</p>';
             }
             timelineHtml += '</div>';
 
@@ -425,7 +492,7 @@
                 <div style="margin-bottom:10px;"><strong>الأولوية:</strong> ${ticket.priority}</div>
                 <div style="margin-bottom:10px;"><strong>الوصف:</strong> ${ticket.description}</div>
                 <hr style="margin: 15px 0; border:0; border-top:1px solid #ddd;">
-                <h4 style="color:var(--primary); margin-bottom:10px;">Timeline:</h4>
+                <h4 style="color:var(--primary); margin-bottom:10px;">سجل الإجراءات:</h4>
                 ${timelineHtml}
             `;
             
@@ -445,17 +512,22 @@
 
         window.closeTicket = async () => {
             const ticketId = document.getElementById('update-text').dataset.ticketId;
-            if(confirm('هل أنت متأكد من إغلاق التذكرة؟')) {
+            if(confirm('هل أنت متأكد من إغلاق هذا البلاغ؟')) {
                 await supabase.from('tickets').update({ status: 'closed' }).eq('id', ticketId);
-                // تحديث حالة الأصل لسليم
                 const { data: ticket } = await supabase.from('tickets').select('asset_id').eq('id', ticketId).single();
                 await supabase.from('assets').update({ status: 'working' }).eq('id', ticket.asset_id);
-                
                 document.getElementById('ticket-modal').style.display = 'none';
                 loadData();
             }
         };
 
+        // إدارة الفروع
+        window.addBranch = async () => {
+            const name = document.getElementById('branch-name').value;
+            if(name) { await supabase.from('branches').insert([{ name }]); document.getElementById('branch-name').value = ''; loadData(); }
+        };
+
+        // إدارة المستخدمين
         window.addUser = async () => {
             const username = document.getElementById('u-name').value;
             const password = document.getElementById('u-pass').value;
@@ -473,11 +545,66 @@
             if(confirm('تأكيد الحذف؟')) { await supabase.from('users').delete().eq('id', id); loadData(); }
         };
 
+        // الإعدادات
         window.saveSettings = async () => {
             const company_name = document.getElementById('set-name').value;
             const logo_url = document.getElementById('set-logo').value;
             await supabase.from('settings').update({ company_name, logo_url }).eq('id', 1);
-            alert('تم حفظ الإعدادات بنجاح');
+            alert('تم حفظ إعدادات النظام بنجاح.');
+        };
+
+        // ================= Excel Import/Export =================
+        
+        // 1. تحميل القالب الفارغ
+        window.downloadTemplate = () => {
+            const ws = XLSX.utils.json_to_sheet([
+                { "الكود": "AST-100", "الاسم": "جهاز كمبيوتر", "الماركة": "Dell", "الموديل": "Vostro", "الرقم التسلسلي": "SN-12345", "رقم الفرع": 1 }
+            ]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template");
+            XLSX.writeFile(wb, "Maintenance_Assets_Template.xlsx");
+        };
+
+        // 2. استيراد ملف Excel
+        window.importExcel = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                if (jsonData.length === 0) return alert('الملف فارغ أو غير صالح.');
+
+                let successCount = 0;
+                
+                // تجهيز البيانات للإدخال
+                const assetsToInsert = jsonData.map(row => ({
+                    code: row['الكود'],
+                    name: row['الاسم'],
+                    brand: row['الماركة'],
+                    model: row['الموديل'],
+                    serial_number: row['الرقم التسلسلي'],
+                    branch_id: row['رقم الفرع']
+                })).filter(a => a.code && a.name && a.branch_id);
+
+                if (assetsToInsert.length > 0) {
+                    const { error } = await supabase.from('assets').insert(assetsToInsert);
+                    if (error) {
+                        alert('حدث خطأ أثناء الاستيراد: ' + error.message);
+                    } else {
+                        alert(`تم استيراد ${assetsToInsert.length} أصل بنجاح.`);
+                        loadData();
+                    }
+                } else {
+                    alert('تأكد من مطابقة أسماء الأعمدة في الملف للقالب.');
+                }
+                event.target.value = ''; // تفريغ الحقل بعد الرفع
+            };
+            reader.readAsArrayBuffer(file);
         };
     </script>
 </body>
