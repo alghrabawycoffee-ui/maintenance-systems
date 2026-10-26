@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير الفرع | الغرباوي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --brand: #9A4632; --bg: #F3F4F6; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { display: flex; height: 100vh; background: var(--bg); }
+        .sidebar { width: 250px; background: #2D1B16; color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { padding: 20px; text-align: center; border-bottom: 1px solid #444; }
+        .nav-btn { padding: 15px; background: none; border: none; color: #ccc; text-align: right; cursor: pointer; font-size: 16px; }
+        .nav-btn.active { background: var(--brand); color: white; }
+        .main { flex: 1; padding: 20px; }
+        .tab { display: none; background: white; padding: 20px; border-radius: 10px; }
+        .tab.active { display: block; }
+        .input { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { padding: 10px 20px; background: var(--brand); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>الغرباوي</h2>
+        <button class="nav-btn active" onclick="showTab('tickets')">البلاغات</button>
+        <button class="nav-btn" onclick="showTab('assets')">عهد الفرع</button>
+        <div style="margin-top: auto; padding: 20px;">
+            <button class="btn" style="background: #DC2626; width: 100%;" onclick="logout()">خروج</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div id="tab-tickets" class="tab active">
+            <h3>إرسال بلاغ عطل</h3>
+            <select id="t-asset" class="input"></select>
+            <textarea id="t-desc" class="input" rows="3" placeholder="وصف العطل..."></textarea>
+            <button class="btn" onclick="sendTicket()">إرسال</button>
+            <table id="tbl-tickets"><thead><tr><th>#</th><th>العهدة</th><th>الوصف</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <div id="tab-assets" class="tab">
+            <h3>عهد الفرع</h3>
+            <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js'
+        const user = JSON.parse(localStorage.getItem('user'));
+        if(!user) window.location.href = 'index.html';
+
+        window.logout = () => { localStorage.removeItem('user'); window.location.href = 'index.html'; }
+        window.showTab = (id) => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${id}`).classList.add('active');
+        }
+
+        async function loadData() {
+            const { data: assets } = await supabase.from('assets').select('*').eq('branch_id', user.branch_id);
+            const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
+            const selA = document.getElementById('t-asset'); selA.innerHTML = '';
+            
+            if(assets && assets.length > 0) {
+                assets.forEach(a => {
+                    tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.status}</td></tr>`;
+                    selA.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+                });
+            } else {
+                tbodyA.innerHTML = '<tr><td colspan="3">لا توجد عهد لهذا الفرع</td></tr>';
+            }
+
+            const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', user.branch_id);
+            const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
+            tickets?.forEach(t => {
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.assets?.name}</td><td>${t.description}</td><td>${t.status}</td></tr>`;
+            });
+        }
+        loadData();
+
+        window.sendTicket = async () => {
+            const asset_id = document.getElementById('t-asset').value;
+            const description = document.getElementById('t-desc').value;
+            if(asset_id && description) {
+                await supabase.from('tickets').insert([{ asset_id, branch_id: user.branch_id, description, created_by: user.id }]);
+                await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
+                loadData();
+                document.getElementById('t-desc').value = '';
+                alert('تم إرسال البلاغ');
+            }
+        };
+    </script>
+</body>
+</html>
