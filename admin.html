@@ -5,37 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maintenance System | لوحة التحكم</title>
     
-    <!-- FontAwesome & Google Fonts & Chart.js & SheetJS (لإكسيل) -->
+    <!-- FontAwesome & Google Fonts & Chart.js -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- مكتبة SheetJS للتعامل مع الإكسيل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         :root { 
-            --primary: #2C3E50; 
-            --secondary: #34495E; 
-            --accent: #3498DB; 
-            --bg: #F4F6F9; 
-            --sidebar: #222D32; 
-            --border: #D2D6DE; 
-            --text: #333; 
+            --primary: #2C3E50; --secondary: #34495E; --accent: #3498DB; 
+            --bg: #F4F6F9; --sidebar: #222D32; --border: #D2D6DE; 
+            --text: #333; --danger: #DD4B39; --success: #00A65A; 
+            --warning: #F39C12; --gray: #95A5A6;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; height: 100vh; background: var(--bg); color: var(--text); font-size: 14px; overflow: hidden; }
 
         /* Sidebar */
-        .sidebar { width: 260px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar { width: 260px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
         .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
         .sidebar-header i { color: var(--accent); margin-left: 10px; font-size: 20px; }
         .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto; }
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
-        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
+        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; font-size: 16px; }
         .nav-btn:hover { background: #1A2226; color: white; }
         .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
-        .logout-btn { width: 100%; padding: 12px; background: #C0392B; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
-        .logout-btn:hover { background: #E74C3C; }
+        .logout-btn { width: 100%; padding: 12px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
+        .logout-btn:hover { background: #C0392B; }
 
         /* Main Content */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -46,7 +44,6 @@
         .header-right { display: flex; align-items: center; gap: 20px; }
         .header-right i { font-size: 18px; cursor: pointer; }
         .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.2); padding-right: 20px; }
-        
         .content-body { flex: 1; padding: 25px; overflow-y: auto; }
 
         /* Cards & Titles */
@@ -61,6 +58,7 @@
         .table-container { background: white; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 25px; overflow: hidden; }
         .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .table-title { font-weight: 700; color: var(--primary); font-size: 16px; }
+        
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 14px 20px; font-size: 13px; color: var(--primary); border-bottom: 2px solid var(--border); background: #F4F6F9; }
         td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: #555; font-size: 14px; }
@@ -77,17 +75,17 @@
         .btn { padding: 10px 20px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--secondary); }
-        .btn-success { background: #00A65A; color: white; }
-        .btn-danger { background: #DD4B39; color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
         .btn-outline:hover { background: #F4F6F9; }
 
         .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; color: white; display: inline-block; }
-        .bg-green { background: #00A65A; }
-        .bg-red { background: #DD4B39; }
-        .bg-orange { background: #F39C12; }
-        .bg-blue { background: #3498DB; }
-        .bg-gray { background: #95A5A6; }
+        .bg-green { background: var(--success); }
+        .bg-red { background: var(--danger); }
+        .bg-orange { background: var(--warning); }
+        .bg-blue { background: var(--accent); }
+        .bg-gray { background: var(--gray); }
 
         /* Tabs */
         .tab { display: none; animation: fadeIn 0.3s; }
@@ -105,7 +103,7 @@
         .timeline-item::before { content: ''; position: absolute; right: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid white; }
         .timeline-date { font-size: 12px; color: #777; margin-bottom: 5px; }
 
-        /* Print Styles */
+        /* Print */
         @media print {
             body { background: white; display: block; height: auto; overflow: visible; }
             .sidebar, .top-header, .nav-menu, .btn, .modal { display: none !important; }
@@ -116,7 +114,6 @@
             .card, .table-container { border: 1px solid #000; box-shadow: none; margin-bottom: 20px; }
             .print-header { display: block !important; text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 15px; }
             .print-header h1 { font-size: 28px; margin-bottom: 5px; }
-            .print-header p { font-size: 14px; color: #555; }
             th, td { border: 1px solid #000; }
         }
         .print-header { display: none; }
@@ -140,7 +137,7 @@
     <div class="main-content">
         <div class="top-header">
             <div class="header-left">
-                <div class="global-search"><i class="fas fa-search"></i><input type="text" placeholder="بحث سريع في النظام..."></div>
+                <div class="global-search"><i class="fas fa-search"></i><input type="text" placeholder="بحث سريع..."></div>
             </div>
             <div class="header-right">
                 <i class="fas fa-bell"></i>
@@ -154,7 +151,7 @@
             <div id="tab-dash" class="tab active">
                 <div class="print-header">
                     <h1>Maintenance System</h1>
-                    <p>تقرير لوحة القيادة العامة - <span id="print-date"></span></p>
+                    <p>تقرير لوحة القيادة العامة - <span class="print-date"></span></p>
                 </div>
                 <div class="page-title">
                     <span><i class="fas fa-tachometer-alt"></i> لوحة القيادة</span>
@@ -163,6 +160,7 @@
                 <div class="cards-row">
                     <div class="card"><div class="card-info"><h4>إجمالي الأصول المسجلة</h4><h2 id="st-assets">0</h2></div><i class="fas fa-server card-icon"></i></div>
                     <div class="card"><div class="card-info"><h4>البلاغات المفتوحة</h4><h2 id="st-tickets" style="color: #DD4B39;">0</h2></div><i class="fas fa-exclamation-circle card-icon" style="color: #DD4B39;"></i></div>
+                    <div class="card"><div class="card-info"><h4>الفنيين</h4><h2 id="st-users">0</h2></div><i class="fas fa-users card-icon"></i></div>
                 </div>
                 <div class="card" style="display: block; margin-top: 25px;">
                     <h4 style="margin-bottom: 15px; color: var(--primary); font-weight:700;">إحصائيات البلاغات</h4>
@@ -174,7 +172,7 @@
             <div id="tab-assets" class="tab">
                 <div class="print-header">
                     <h1>Maintenance System</h1>
-                    <p>تقرير سجل الأصول - <span class="print-dates"></span></p>
+                    <p>تقرير سجل الأصول - <span class="print-date"></span></p>
                 </div>
                 <div class="page-title">
                     <span><i class="fas fa-server"></i> إدارة الأصول (Assets)</span>
@@ -183,7 +181,7 @@
                 
                 <div class="table-container">
                     <div class="table-header">
-                        <span class="table-title">إضافة أصل جديد (تفاصيل كاملة)</span>
+                        <span class="table-title">إضافة أصل جديد</span>
                         <div style="display:flex; gap:10px;">
                             <button class="btn btn-success" onclick="downloadTemplate()"><i class="fas fa-download"></i> تحميل قالب فارغ</button>
                             <label class="btn btn-primary" style="margin:0;">
@@ -222,7 +220,7 @@
             <div id="tab-tickets" class="tab">
                 <div class="print-header">
                     <h1>Maintenance System</h1>
-                    <p>تقرير سجل البلاغات - <span class="print-dates"></span></p>
+                    <p>تقرير سجل البلاغات - <span class="print-date"></span></p>
                 </div>
                 <div class="page-title">
                     <span><i class="fas fa-ticket-alt"></i> سجل البلاغات (Tickets)</span>
@@ -258,7 +256,7 @@
             <div id="tab-branches" class="tab">
                 <div class="print-header">
                     <h1>Maintenance System</h1>
-                    <p>تقرير سجل الفروع - <span class="print-dates"></span></p>
+                    <p>تقرير سجل الفروع - <span class="print-date"></span></p>
                 </div>
                 <div class="page-title">
                     <span><i class="fas fa-building"></i> إدارة الفروع</span>
@@ -283,7 +281,7 @@
             <div id="tab-users" class="tab">
                 <div class="print-header">
                     <h1>Maintenance System</h1>
-                    <p>تقرير سجل المستخدمين - <span class="print-dates"></span></p>
+                    <p>تقرير سجل المستخدمين - <span class="print-date"></span></p>
                 </div>
                 <div class="page-title">
                     <span><i class="fas fa-users"></i> إدارة المستخدمين</span>
@@ -357,8 +355,7 @@
 
         // ضبط تاريخ الطباعة
         const today = new Date().toLocaleDateString('ar-EG');
-        document.getElementById('print-date').innerText = today;
-        document.querySelectorAll('.print-dates').forEach(el => el.innerText = today);
+        document.querySelectorAll('.print-date').forEach(el => el.innerText = today);
 
         window.logout = () => { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = (id, btn) => {
@@ -411,6 +408,7 @@
             // جلب المستخدمين والإعدادات (للأدمن فقط)
             if(user.role === 'admin') {
                 const { data: users } = await supabase.from('users').select('*, branches(name)');
+                document.getElementById('st-users').innerText = users?.filter(u => u.role === 'maintenance_manager').length || 0;
                 const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
                 users?.forEach(u => {
                     const roleName = u.role === 'admin' ? 'مسؤول النظام' : (u.role === 'maintenance_manager' ? 'مدير صيانة' : 'مدير فرع');
