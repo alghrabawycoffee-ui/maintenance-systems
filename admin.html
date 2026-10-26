@@ -10,12 +10,16 @@
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-tabs button { padding: 10px 20px; border: none; background: #fff; border-radius: 5px; cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .nav-tabs button.active { background: #007bff; color: white; }
-        .content-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        input, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+        .content-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none; }
+        .content-box.active { display: block; }
+        input, select, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
         button[type="submit"] { background: #28a745; color: white; border: none; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 10px; border: 1px solid #ddd; text-align: right; }
         th { background: #f8f9fa; }
+        .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; color: white; }
+        .status-working { background: #28a745; }
+        .status-broken { background: #dc3545; }
     </style>
 </head>
 <body>
@@ -27,96 +31,170 @@
 
     <!-- أزرار التنقل -->
     <div class="nav-tabs">
-        <button id="btn-branches" class="active" onclick="showTab('branches')">إدارة الفروع</button>
-        <!-- هنضيف أزرار تانية هنا بعدين -->
+        <button id="btn-branches" onclick="showTab('branches')">إدارة الفروع</button>
+        <button id="btn-assets" class="active" onclick="showTab('assets')">إدارة العهد</button>
     </div>
 
     <!-- قسم الفروع -->
     <div id="tab-branches" class="content-box">
         <h3>إضافة فرع جديد</h3>
         <form id="add-branch-form">
-            <input type="text" id="branch-name" placeholder="اسم الفرع (مثال: فرع القاهرة)" required>
+            <input type="text" id="branch-name" placeholder="اسم الفرع" required>
             <button type="submit">إضافة الفرع</button>
         </form>
-
         <h3 style="margin-top: 30px;">قائمة الفروع</h3>
         <table id="branches-table">
+            <thead><tr><th>كود الفرع</th><th>اسم الفرع</th><th>تاريخ الإضافة</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- قسم العهد -->
+    <div id="tab-assets" class="content-box active">
+        <h3>إضافة عهدة جديدة</h3>
+        <form id="add-asset-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" id="asset-code" placeholder="كود العهدة (مثال: AST-001)" required>
+            <input type="text" id="asset-name" placeholder="اسم العهدة" required>
+            <select id="asset-type" required>
+                <option value="">نوع العهدة...</option>
+                <option value="ماكينة">ماكينة</option>
+                <option value="تكييف">تكييف</option>
+                <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
+                <option value="عربية">عربية</option>
+                <option value="أخرى">أخرى</option>
+            </select>
+            <select id="asset-branch" required>
+                <option value="">اختر الفرع...</option>
+                <!-- الفروع هتتحمل هنا بالـ JS -->
+            </select>
+            <button type="submit">إضافة العهدة</button>
+        </form>
+
+        <h3 style="margin-top: 30px;">قائمة العهد</h3>
+        <table id="assets-table">
             <thead>
                 <tr>
-                    <th>كود الفرع</th>
-                    <th>اسم الفرع</th>
-                    <th>تاريخ الإضافة</th>
+                    <th>كود العهدة</th>
+                    <th>الاسم</th>
+                    <th>النوع</th>
+                    <th>الفرع</th>
+                    <th>الحالة</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- البيانات هتتحمل هنا بالـ JS -->
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js'
 
-        // 1. التأكد من تسجيل الدخول
+        // التأكد من تسجيل الدخول
         const user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'admin') {
-            window.location.href = 'index.html';
-        }
+        if (!user || user.role !== 'admin') window.location.href = 'index.html';
 
-        // 2. دالة تسجيل الخروج
+        // تسجيل الخروج
         window.logout = function() {
             localStorage.removeItem('user');
             window.location.href = 'index.html';
         }
 
-        // 3. دالة لجلب الفروع وعرضها في الجدول
+        // التبديل بين التابات
+        window.showTab = function(tabId) {
+            document.querySelectorAll('.content-box').forEach(box => box.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+        }
+
+        // ================= إدارة الفروع =================
         async function loadBranches() {
             const { data, error } = await supabase.from('branches').select('*').order('id', { ascending: false });
-            
             const tbody = document.querySelector('#branches-table tbody');
-            tbody.innerHTML = ''; // تفريغ الجدول قبل إضافة البيانات
+            const selectBranch = document.getElementById('asset-branch');
+            
+            tbody.innerHTML = '';
+            selectBranch.innerHTML = '<option value="">اختر الفرع...</option>'; // تصفير القائمة
 
-            if (error) {
-                console.error('Error fetching branches:', error);
-                return;
-            }
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا توجد فروع مضافة حتى الآن</td></tr>';
-                return;
-            }
+            if (error) return console.error(error);
 
             data.forEach(branch => {
-                const tr = document.createElement('tr');
-                // تنسيق التاريخ
+                // إضافة للجدول
                 const date = new Date(branch.created_at).toLocaleDateString('ar-EG');
-                tr.innerHTML = `
-                    <td>${branch.id}</td>
-                    <td>${branch.name}</td>
-                    <td>${date}</td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `<tr><td>${branch.id}</td><td>${branch.name}</td><td>${date}</td></tr>`;
+                
+                // إضافة للقائمة المنسدلة في العهد
+                selectBranch.innerHTML += `<option value="${branch.id}">${branch.name}</option>`;
             });
         }
 
-        // 4. إضافة فرع جديد
         document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
-            e.preventDefault(); // منع الصفحة من إعادة التحميل
-            const branchName = document.getElementById('branch-name').value;
-
-            const { error } = await supabase.from('branches').insert([{ name: branchName }]);
-
-            if (error) {
-                alert('حدث خطأ أثناء إضافة الفرع: ' + error.message);
-            } else {
-                alert('تم إضافة الفرع بنجاح!');
-                document.getElementById('branch-name').value = ''; // تفريغ الخانة
-                loadBranches(); // تحديث الجدول
+            e.preventDefault();
+            const name = document.getElementById('branch-name').value;
+            const { error } = await supabase.from('branches').insert([{ name }]);
+            if (error) alert('خطأ: ' + error.message);
+            else {
+                alert('تم إضافة الفرع!');
+                document.getElementById('branch-name').value = '';
+                loadBranches();
             }
         });
 
-        // تشغيل جلب الفروع أول ما الصفحة تفتح
+        // ================= إدارة العهد =================
+        async function loadAssets() {
+            // بنجيب بيانات العهد مع اسم الفرع المرتبط بيها
+            const { data, error } = await supabase.from('assets').select(`
+                *,
+                branches (name)
+            `).order('id', { ascending: false });
+
+            const tbody = document.querySelector('#assets-table tbody');
+            tbody.innerHTML = '';
+
+            if (error) return console.error(error);
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد عهد مضافة</td></tr>';
+                return;
+            }
+
+            data.forEach(asset => {
+                const branchName = asset.branches ? asset.branches.name : 'غير محدد';
+                const statusClass = asset.status === 'working' ? 'status-working' : 'status-broken';
+                const statusText = asset.status === 'working' ? 'شغال' : 'عطلان';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${asset.code}</td>
+                        <td>${asset.name}</td>
+                        <td>${asset.type || '-'}</td>
+                        <td>${branchName}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('add-asset-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('asset-code').value;
+            const name = document.getElementById('asset-name').value;
+            const type = document.getElementById('asset-type').value;
+            const branch_id = document.getElementById('asset-branch').value;
+
+            const { error } = await supabase.from('assets').insert([{ code, name, type, branch_id }]);
+
+            if (error) alert('خطأ في إضافة العهدة: ' + error.message);
+            else {
+                alert('تم إضافة العهدة بنجاح!');
+                document.getElementById('add-asset-form').reset();
+                loadAssets();
+            }
+        });
+
+        // تشغيل الدوال أول ما الصفحة تفتح
         loadBranches();
+        loadAssets();
     </script>
 </body>
 </html>
