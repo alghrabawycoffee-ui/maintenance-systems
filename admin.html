@@ -2,212 +2,327 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم الأدمن - المحسنة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الأدمن | الغرباوي</title>
+    <!-- استدعاء خط كايرو الاحترافي -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Tahoma, sans-serif; background-color: #eef2f5; margin: 0; padding: 20px; }
-        .header { background: #343a40; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-tabs button { padding: 10px 20px; border: none; background: #fff; border-radius: 5px; cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .nav-tabs button.active { background: #007bff; color: white; }
-        .content-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none; }
-        .content-box.active { display: block; }
-        input, select, textarea, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; }
-        button[type="submit"] { background: #28a745; color: white; border: none; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: right; vertical-align: middle; }
-        th { background: #f8f9fa; }
-        .status-badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; color: white; display:inline-block;}
-        .status-open { background: #ffc107; color: black; }
-        .status-in_progress { background: #17a2b8; }
-        .status-closed { background: #6c757d; }
-        .status-working { background: #28a745; }
-        .status-broken { background: #dc3545; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; overflow-y: auto;}
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; margin: 20px auto; }
-        .btn-view { background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-        .btn-print { background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
-        
-        .timeline { position: relative; max-width: 100%; margin: 20px 0; padding-right: 20px; border-right: 3px solid #007bff; }
-        .timeline-item { margin-bottom: 15px; position: relative; }
-        .timeline-item::before { content: ''; position: absolute; right: -28px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: #007bff; border: 2px solid white; }
-        .timeline-date { font-size: 12px; color: #666; }
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #94a3b8;
+            --sidebar-active: #3b82f6;
+            --bg-main: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
 
-        /* ====== إعدادات الطباعة الاحترافية ====== */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        
+        body { display: flex; min-height: 100vh; background-color: var(--bg-main); color: var(--text-main); }
+
+        /* Sidebar (القائمة الجانبية) */
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: white; display: flex; flex-direction: column; transition: 0.3s; }
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .sidebar-header h2 { font-size: 22px; font-weight: 700; color: white; }
+        .sidebar-menu { list-style: none; padding: 20px 10px; flex-grow: 1; }
+        .sidebar-menu li { margin-bottom: 5px; }
+        .sidebar-menu a { display: flex; align-items: center; padding: 12px 20px; color: var(--sidebar-text); text-decoration: none; border-radius: 8px; transition: 0.2s; font-weight: 600; cursor: pointer; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background-color: rgba(255,255,255,0.05); color: white; }
+        .sidebar-menu a.active { background-color: var(--primary); color: white; }
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .logout-btn { width: 100%; background-color: rgba(239, 68, 68, 0.1); color: #fca5a5; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .logout-btn:hover { background-color: var(--danger); color: white; }
+
+        /* Main Content (المحتوى) */
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        
+        /* Top Header */
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .top-header h1 { font-size: 28px; font-weight: 700; color: var(--text-main); }
+        .user-profile { background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+
+        /* Stat Cards (كروت الإحصائيات) */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .stat-info h3 { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 5px; }
+        .stat-info p { font-size: 28px; font-weight: 700; color: var(--text-main); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 24px; }
+
+        /* Content Box (الصناديق) */
+        .content-box { background: var(--card-bg); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); display: none; overflow: hidden; }
+        .content-box.active { display: block; }
+        .box-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .box-title { font-size: 18px; font-weight: 700; }
+        .box-body { padding: 20px; }
+
+        /* Inputs & Buttons */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 600; color: var(--text-muted); }
+        input, select, textarea { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; transition: 0.2s; font-family: 'Cairo', sans-serif; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; font-family: 'Cairo', sans-serif; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-main); }
+
+        /* Tables */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th { background: var(--bg-main); padding: 12px 15px; font-size: 14px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        tr:hover { background: #f8fafc; }
+
+        /* Badges */
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-gray { background: #f1f5f9; color: #475569; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 500px; max-width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+
+        /* Timeline */
+        .timeline { position: relative; padding-right: 30px; margin-top: 20px; }
+        .timeline::before { content: ''; position: absolute; right: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; margin-bottom: 25px; }
+        .timeline-item::before { content: ''; position: absolute; right: -26px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid white; box-shadow: 0 0 0 3px #dbeafe; }
+        .timeline-date { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+        
+        /* Print Settings */
         @media print {
-            /* إخفاء كل حاجة مش محتاجينها في الطباعة */
-            body { background-color: white; padding: 0; margin: 0; font-size: 14px; }
-            .header, .nav-tabs, .filter-section, .btn-print, .btn-view, .logout-btn, button, .modal, .no-print { display: none !important; }
-            
-            /* إظهار المحتوى المطلوب فقط */
-            .content-box { box-shadow: none; padding: 0; display: block !important; }
-            .printable-area { display: block !important; width: 100%; }
-            
-            /* ستايل الورقة */
+            .sidebar, .top-header, .nav-tabs, .btn, .no-print, .modal { display: none !important; }
+            body { background: white; display: block; }
+            .main-content { padding: 0; }
+            .content-box { border: none; box-shadow: none; display: block !important; }
             .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
             .print-header h1 { margin: 0; font-size: 24px; }
-            .print-header p { margin: 5px 0 0 0; font-size: 14px; color: #555; }
-            
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
-            th, td { border: 1px solid #000 !important; padding: 8px; text-align: right; }
-            th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
-            
-            .print-footer { display: block !important; margin-top: 30px; text-align: center; font-size: 12px; color: #555; border-top: 1px solid #ccc; padding-top: 10px; }
-            
-            /* إخفاء أي عناصر تانية */
-            .timeline { border-right: 1px solid #000; }
-            .timeline-item::before { display: none; }
+            table { font-size: 12px; }
+            th, td { border: 1px solid #000 !important; padding: 8px; }
+            th { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            .print-footer { display: block !important; margin-top: 30px; text-align: center; font-size: 12px; }
         }
-        
-        /* إخفاء الهيدر الخاص بالطباعة في الشاشة العادية */
         .print-header, .print-footer { display: none; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>لوحة تحكم الأدمن</h2>
-        <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+
+    <!-- القائمة الجانبية -->
+    <div class="sidebar no-print">
+        <div class="sidebar-header">
+            <h2>☕ الغرباوي</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a id="nav-dashboard" class="active" onclick="showTab('dashboard')">لوحة القيادة</a></li>
+            <li><a id="nav-branches" onclick="showTab('branches')">إدارة الفروع</a></li>
+            <li><a id="nav-assets" onclick="showTab('assets')">إدارة العهد</a></li>
+            <li><a id="nav-tickets" onclick="showTab('tickets')">البلاغات والصيانة</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+        </div>
     </div>
 
-    <div class="nav-tabs no-print">
-        <button id="btn-branches" onclick="showTab('branches')">إدارة الفروع</button>
-        <button id="btn-assets" class="active" onclick="showTab('assets')">إدارة العهد</button>
-        <button id="btn-tickets" onclick="showTab('tickets')">البلاغات</button>
-    </div>
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <div class="top-header no-print">
+            <h1 id="page-title">لوحة القيادة</h1>
+            <div class="user-profile" id="user-info">أدمن</div>
+        </div>
 
-    <!-- قسم الفروع -->
-    <div id="tab-branches" class="content-box">
-        <div class="print-header">
-            <h1>شركة الغراباوي للقهوة</h1>
-            <p>تقرير الفروع - تاريخ الطباعة: <span id="print-date-branches"></span></p>
-        </div>
-        <div class="no-print">
-            <h3>إضافة فرع جديد</h3>
-            <form id="add-branch-form">
-                <input type="text" id="branch-name" placeholder="اسم الفرع" required>
-                <button type="submit">إضافة الفرع</button>
-            </form>
-            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير الفروع</button>
-        </div>
-        <h3 style="margin-top: 30px;">قائمة الفروع</h3>
-        <table id="branches-table">
-            <thead><tr><th>كود الفرع</th><th>اسم الفرع</th><th>تاريخ الإضافة</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
-    </div>
-
-    <!-- قسم العهد -->
-    <div id="tab-assets" class="content-box active">
-        <div class="print-header">
-            <h1>شركة الغراباوي للقهوة</h1>
-            <p>تقرير العهد - تاريخ الطباعة: <span id="print-date-assets"></span></p>
-        </div>
-        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>إدارة العهد</h3>
-            <button onclick="document.getElementById('add-asset-modal').style.display='flex'" style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">+ إضافة عهدة جديدة</button>
-        </div>
-        
-        <div class="filter-section no-print" style="margin-top:20px; display:flex; gap:10px; align-items:center; justify-content: space-between;">
-            <div>
-                <label>اختر الفرع لعرض عهده:</label>
-                <select id="filter-branch" onchange="loadAssets()" style="padding:8px; border-radius:5px;">
-                    <option value="">كل الفروع</option>
-                </select>
+        <!-- ================= قسم لوحة القيادة (Dashboard) ================= -->
+        <div id="tab-dashboard" class="content-box active">
+            <div class="box-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>إجمالي العهد</h3>
+                            <p id="stat-total-assets">0</p>
+                        </div>
+                        <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;">📦</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>عهد عطلانة</h3>
+                            <p id="stat-broken-assets" style="color:var(--danger);">0</p>
+                        </div>
+                        <div class="stat-icon" style="background:#fee2e2; color:var(--danger);">⚠️</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>بلاغات مفتوحة</h3>
+                            <p id="stat-open-tickets" style="color:var(--warning);">0</p>
+                        </div>
+                        <div class="stat-icon" style="background:#fef3c7; color:var(--warning);">🔔</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>إجمالي التكاليف</h3>
+                            <p id="stat-total-cost" style="color:var(--success);">0 ج</p>
+                        </div>
+                        <div class="stat-icon" style="background:#d1fae5; color:var(--success);">💰</div>
+                    </div>
+                </div>
             </div>
-            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير العهد</button>
         </div>
 
-        <table id="assets-table">
-            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الموديل</th><th>السيريال</th><th>الفرع</th><th>الحالة</th><th class="no-print">إجراء</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
+        <!-- ================= قسم الفروع ================= -->
+        <div id="tab-branches" class="content-box">
+            <div class="print-header"><h1>شركة الغرباوي</h1><p>تقرير الفروع</p></div>
+            <div class="box-header no-print">
+                <span class="box-title">قائمة الفروع</span>
+                <button class="btn btn-primary" onclick="document.getElementById('add-branch-form').style.display='flex'">+ إضافة فرع</button>
+            </div>
+            <div class="box-body no-print" id="add-branch-form" style="display:none; background:var(--bg-main); border-bottom:1px solid var(--border);">
+                <form id="branch-form" style="display:flex; gap:15px; align-items:flex-end;">
+                    <div class="form-group" style="flex-grow:1; margin:0;">
+                        <label>اسم الفرع الجديد</label>
+                        <input type="text" id="branch-name" placeholder="مثال: فرع المعادي" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">حفظ</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('add-branch-form').style.display='none'">إلغاء</button>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table id="branches-table">
+                    <thead><tr><th>كود الفرع</th><th>اسم الفرع</th><th>تاريخ الإضافة</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام صيانة الغرباوي</div>
+        </div>
+
+        <!-- ================= قسم العهد ================= -->
+        <div id="tab-assets" class="content-box">
+            <div class="print-header"><h1>شركة الغرباوي</h1><p>تقرير العهد</p></div>
+            <div class="box-header no-print">
+                <span class="box-title">إدارة العهد</span>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-outline" onclick="window.print()">🖨️ طباعة</button>
+                    <button class="btn btn-primary" onclick="document.getElementById('add-asset-modal').style.display='flex'">+ إضافة عهدة</button>
+                </div>
+            </div>
+            <div class="box-body no-print" style="background:var(--bg-main); border-bottom:1px solid var(--border); display:flex; gap:20px; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label style="font-weight:600; font-size:14px; white-space:nowrap;">تصفية حسب الفرع:</label>
+                    <select id="filter-branch" onchange="loadAssets()" style="width:200px;">
+                        <option value="">كل الفروع</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="assets-table">
+                    <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الموديل</th><th>الفرع</th><th>الحالة</th><th class="no-print">إجراء</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام صيانة الغرباوي</div>
+        </div>
+
+        <!-- ================= قسم البلاغات ================= -->
+        <div id="tab-tickets" class="content-box">
+            <div class="print-header"><h1>شركة الغرباوي</h1><p>تقرير البلاغات والصيانة</p></div>
+            <div class="box-header no-print">
+                <span class="box-title">البلاغات الواردة</span>
+                <button class="btn btn-outline" onclick="window.print()">🖨️ طباعة</button>
+            </div>
+            <div class="table-responsive">
+                <table id="tickets-table">
+                    <thead><tr><th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>الحالة</th><th>التكلفة</th><th class="no-print">إجراء</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام صيانة الغرباوي</div>
+        </div>
     </div>
 
-    <!-- قسم البلاغات -->
-    <div id="tab-tickets" class="content-box">
-        <div class="print-header">
-            <h1>شركة الغراباوي للقهوة</h1>
-            <p>تقرير البلاغات - تاريخ الطباعة: <span id="print-date-tickets"></span></p>
-        </div>
-        <div class="no-print" style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>البلاغات الواردة</h3>
-            <button class="btn-print" onclick="window.print()">🖨️ طباعة تقرير البلاغات</button>
-        </div>
-        <table id="tickets-table">
-            <thead><tr><th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>الحالة</th><th>التكلفة</th><th class="no-print">إجراء</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
-    </div>
-
-    <!-- مودال إضافة عهدة (بيانات كاملة) -->
+    <!-- مودال إضافة عهدة -->
     <div id="add-asset-modal" class="modal">
         <div class="modal-content">
-            <h3>إضافة عهدة جديدة</h3>
+            <div class="modal-header">
+                <span class="modal-title">إضافة عهدة جديدة</span>
+                <button class="close-btn" onclick="document.getElementById('add-asset-modal').style.display='none'">&times;</button>
+            </div>
             <form id="add-asset-form">
-                <input type="text" id="asset-code" placeholder="كود العهدة (مثال: AST-001)" required style="width:100%; box-sizing:border-box;">
-                <input type="text" id="asset-name" placeholder="اسم العهدة" required style="width:100%; box-sizing:border-box;">
-                <select id="asset-type" required style="width:100%; box-sizing:border-box;">
-                    <option value="">النوع...</option>
-                    <option value="ماكينة">ماكينة</option>
-                    <option value="تكييف">تكييف</option>
-                    <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
-                    <option value="عربية">عربية</option>
-                    <option value="أخرى">أخرى</option>
-                </select>
-                <select id="asset-branch" required style="width:100%; box-sizing:border-box;">
-                    <option value="">اختر الفرع...</option>
-                </select>
-                <input type="text" id="asset-model" placeholder="الموديل / الطراز" style="width:100%; box-sizing:border-box;">
-                <input type="text" id="asset-serial" placeholder="الرقم التسلسلي (Serial)" style="width:100%; box-sizing:border-box;">
-                <label style="font-size:14px; color:#555;">تاريخ الشراء:</label>
-                <input type="date" id="asset-purchase" style="width:100%; box-sizing:border-box;">
-                <textarea id="asset-notes" placeholder="ملاحظات إضافية..." style="width:100%; box-sizing:border-box;"></textarea>
-                
-                <button type="submit" style="width:100%; margin-top:10px;">حفظ العهدة</button>
-                <button type="button" onclick="document.getElementById('add-asset-modal').style.display='none'" style="background:#dc3545;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:5px;">إلغاء</button>
+                <div class="form-group"><label>كود العهدة</label><input type="text" id="asset-code" placeholder="AST-001" required></div>
+                <div class="form-group"><label>اسم العهدة</label><input type="text" id="asset-name" placeholder="مثال: تكييف استقبال" required></div>
+                <div class="form-group">
+                    <label>النوع</label>
+                    <select id="asset-type" required>
+                        <option value="">اختر النوع...</option>
+                        <option value="ماكينة">ماكينة</option>
+                        <option value="تكييف">تكييف</option>
+                        <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
+                        <option value="عربية">عربية</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الفرع</label>
+                    <select id="asset-branch" required><option value="">اختر الفرع...</option></select>
+                </div>
+                <div class="form-group"><label>الموديل</label><input type="text" id="asset-model" placeholder="الطراز"></div>
+                <div class="form-group"><label>الرقم التسلسلي</label><input type="text" id="asset-serial" placeholder="Serial Number"></div>
+                <div class="form-group"><label>تاريخ الشراء</label><input type="date" id="asset-purchase"></div>
+                <div class="form-group"><label>ملاحظات</label><textarea id="asset-notes" rows="2"></textarea></div>
+                <button type="submit" class="btn btn-success" style="width:100%; justify-content:center;">حفظ العهدة</button>
             </form>
         </div>
     </div>
 
-    <!-- مودال تفاصيل العهدة والسجل -->
+    <!-- مودال التفاصيل والسجل -->
     <div id="asset-details-modal" class="modal">
-        <div class="modal-content" style="width: 600px;">
-            <div class="print-header">
-                <h1>شركة الغراباوي للقهوة</h1>
-                <p>سجل صيانة الأصل - تاريخ الطباعة: <span id="print-date-details"></span></p>
+        <div class="modal-content" style="width: 650px;">
+            <div class="modal-header no-print">
+                <span class="modal-title">تفاصيل العهدة</span>
+                <button class="close-btn" onclick="document.getElementById('asset-details-modal').style.display='none'">&times;</button>
             </div>
-            <h3 id="details-title" class="no-print">تفاصيل العهدة</h3>
-            <div id="details-info" style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">
-                <!-- البيانات هتتحمل هنا -->
+            <div class="print-header"><h1>شركة الغرباوي</h1><p>سجل صيانة الأصل</p></div>
+            <div id="details-info" style="background:var(--bg-main); padding:15px; border-radius:8px; margin-bottom:20px; font-size:14px;"></div>
+            <h4 style="margin-bottom:10px;">سجل الصيانة (Timeline):</h4>
+            <div id="details-timeline" class="timeline"></div>
+            <div class="no-print" style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn btn-outline" style="flex-grow:1; justify-content:center;" onclick="window.print()">🖨️ طباعة السجل</button>
+                <button class="btn btn-danger" style="flex-grow:1; justify-content:center;" onclick="document.getElementById('asset-details-modal').style.display='none'">إغلاق</button>
             </div>
-            <h4>سجل الصيانة (Timeline):</h4>
-            <div id="details-timeline" class="timeline">
-                <!-- السجل هيتحمل هنا -->
-            </div>
-            <button class="btn-print" onclick="window.print()" style="width:100%; justify-content:center; margin-top:10px;">🖨️ طباعة سجل العهدة</button>
-            <button class="no-print" onclick="document.getElementById('asset-details-modal').style.display='none'" style="background:#343a40;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:10px;">إغلاق</button>
-            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام الصيانة</div>
+            <div class="print-footer">تم إنشاء هذا التقرير آلياً من نظام صيانة الغرباوي</div>
         </div>
     </div>
 
     <!-- مودال إغلاق البلاغ -->
     <div id="close-modal" class="modal">
         <div class="modal-content">
-            <h3>إغلاق البلاغ وإضافة تفاصيل الصيانة</h3>
-            <input type="text" id="tech-name" placeholder="اسم الفني أو الشركة" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
-            <select id="tech-type" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
-                <option value="internal">فني داخلي</option>
-                <option value="external">شركة خارجية</option>
-            </select>
-            <input type="number" id="cost-amount" placeholder="تكلفة الصيانة (جنيه)" required style="width:100%; box-sizing:border-box; margin-bottom:10px;">
-            <label>صورة بعد الإصلاح (اختياري):</label>
-            <input type="file" id="after-image" accept="image/*" style="width:100%; box-sizing:border-box; margin-bottom:15px;">
+            <div class="modal-header">
+                <span class="modal-title">إغلاق البلاغ وإضافة الصيانة</span>
+                <button class="close-btn" onclick="document.getElementById('close-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="form-group"><label>اسم الفني / الشركة</label><input type="text" id="tech-name" required></div>
+            <div class="form-group">
+                <label>نوع الفني</label>
+                <select id="tech-type" required>
+                    <option value="internal">فني داخلي</option>
+                    <option value="external">شركة خارجية</option>
+                </select>
+            </div>
+            <div class="form-group"><label>تكلفة الصيانة (جنيه)</label><input type="number" id="cost-amount" required></div>
+            <div class="form-group"><label>صورة بعد الإصلاح (اختياري)</label><input type="file" id="after-image" accept="image/*"></div>
             <input type="hidden" id="current-ticket-id">
-            <button onclick="submitCloseTicket()" style="background:#28a745;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;">تأكيد الإغلاق</button>
-            <button onclick="document.getElementById('close-modal').style.display='none'" style="background:#dc3545;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:5px;">إلغاء</button>
+            <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="submitCloseTicket()">تأكيد الإغلاق</button>
         </div>
     </div>
 
@@ -216,21 +331,42 @@
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') window.location.href = 'index.html';
 
-        // تعيين تاريخ الطباعة في كل قسم
-        const today = new Date().toLocaleDateString('ar-EG');
-        document.getElementById('print-date-branches').innerText = today;
-        document.getElementById('print-date-assets').innerText = today;
-        document.getElementById('print-date-tickets').innerText = today;
-        document.getElementById('print-date-details').innerText = today;
+        document.getElementById('user-info').innerText = `👤 ${user.username} (أدمن)`;
 
         window.logout = function() { localStorage.removeItem('user'); window.location.href = 'index.html'; }
+        
         window.showTab = function(tabId) {
             document.querySelectorAll('.content-box').forEach(box => box.classList.remove('active'));
-            document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu a').forEach(btn => btn.classList.remove('active'));
+            
             document.getElementById(`tab-${tabId}`).classList.add('active');
-            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(`nav-${tabId}`).classList.add('active');
+
+            // تحديث عنوان الصفحة
+            const titles = { dashboard: 'لوحة القيادة', branches: 'إدارة الفروع', assets: 'إدارة العهد', tickets: 'البلاغات والصيانة' };
+            document.getElementById('page-title').innerText = titles[tabId];
         }
 
+        // ================= تحميل الإحصائيات =================
+        async function loadDashboard() {
+            const { data: assets } = await supabase.from('assets').select('status');
+            const { data: tickets } = await supabase.from('tickets').select('status');
+            const { data: costs } = await supabase.from('costs').select('amount');
+
+            if (assets) {
+                document.getElementById('stat-total-assets').innerText = assets.length;
+                document.getElementById('stat-broken-assets').innerText = assets.filter(a => a.status === 'broken').length;
+            }
+            if (tickets) {
+                document.getElementById('stat-open-tickets').innerText = tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length;
+            }
+            if (costs) {
+                const total = costs.reduce((sum, c) => sum + Number(c.amount), 0);
+                document.getElementById('stat-total-cost').innerText = total.toLocaleString() + ' ج';
+            }
+        }
+
+        // ================= إدارة الفروع =================
         async function loadBranches() {
             const { data } = await supabase.from('branches').select('*').order('id');
             const tbody = document.querySelector('#branches-table tbody');
@@ -248,12 +384,15 @@
             });
         }
 
-        document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
+        document.getElementById('branch-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             await supabase.from('branches').insert([{ name: document.getElementById('branch-name').value }]);
-            document.getElementById('branch-name').value = ''; loadBranches();
+            document.getElementById('branch-name').value = ''; 
+            document.getElementById('add-branch-form').style.display = 'none';
+            loadBranches();
         });
 
+        // ================= إدارة العهد =================
         window.loadAssets = async function() {
             const filterBranchId = document.getElementById('filter-branch').value;
             let query = supabase.from('assets').select(`*, branches (name)`).order('id', { ascending: false });
@@ -265,22 +404,21 @@
             tbody.innerHTML = '';
             
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد عهد مضافة</td></tr>'; return;
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد عهد مضافة</td></tr>'; return;
             }
 
             data.forEach(asset => {
-                const statusClass = asset.status === 'working' ? 'status-working' : 'status-broken';
+                const badgeClass = asset.status === 'working' ? 'badge-success' : 'badge-danger';
                 const statusText = asset.status === 'working' ? 'شغال' : 'عطلان';
                 tbody.innerHTML += `
                     <tr>
-                        <td>${asset.code}</td>
+                        <td style="font-weight:700;">${asset.code}</td>
                         <td>${asset.name}</td>
                         <td>${asset.type || '-'}</td>
                         <td>${asset.model || '-'}</td>
-                        <td>${asset.serial_number || '-'}</td>
                         <td>${asset.branches?.name || '-'}</td>
-                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td class="no-print"><button class="btn-view" onclick="viewAssetDetails(${asset.id})">التفاصيل</button></td>
+                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                        <td class="no-print"><button class="btn btn-outline" style="padding:5px 10px; font-size:12px;" onclick="viewAssetDetails(${asset.id})">التفاصيل</button></td>
                     </tr>`;
             });
         }
@@ -300,55 +438,55 @@
             document.getElementById('add-asset-form').reset(); 
             document.getElementById('add-asset-modal').style.display = 'none';
             loadAssets();
+            loadDashboard();
         });
 
         window.viewAssetDetails = async function(assetId) {
             const { data: asset } = await supabase.from('assets').select(`*, branches (name)`).eq('id', assetId).single();
             
-            document.getElementById('details-title').innerText = `تفاصيل: ${asset.name} (${asset.code})`;
-            
             const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('ar-EG') : 'غير مسجل';
             
             document.getElementById('details-info').innerHTML = `
-                <p><strong>النوع:</strong> ${asset.type || '-'} | <strong>الموديل:</strong> ${asset.model || '-'}</p>
-                <p><strong>الرقم التسلسلي:</strong> ${asset.serial_number || '-'} | <strong>الفرع:</strong> ${asset.branches?.name}</p>
-                <p><strong>تاريخ الشراء:</strong> ${purchaseDate}</p>
-                <p><strong>ملاحظات:</strong> ${asset.notes || 'لا يوجد'}</p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><strong>الاسم:</strong> ${asset.name}</div>
+                    <div><strong>الكود:</strong> ${asset.code}</div>
+                    <div><strong>النوع:</strong> ${asset.type || '-'}</div>
+                    <div><strong>الموديل:</strong> ${asset.model || '-'}</div>
+                    <div><strong>السيريال:</strong> ${asset.serial_number || '-'}</div>
+                    <div><strong>الفرع:</strong> ${asset.branches?.name}</div>
+                    <div><strong>تاريخ الشراء:</strong> ${purchaseDate}</div>
+                </div>
             `;
 
             const { data: tickets } = await supabase.from('tickets').select(`
-                *,
-                work_orders ( technician_name, status, created_at, costs (amount) )
+                *, work_orders ( technician_name, status, created_at, costs (amount) )
             `).eq('asset_id', assetId).order('created_at', { ascending: false });
 
             const timeline = document.getElementById('details-timeline');
             timeline.innerHTML = '';
 
             if (!tickets || tickets.length === 0) {
-                timeline.innerHTML = '<p style="color:#777;">لا يوجد سجل صيانة لهذه العهدة حتى الآن.</p>';
+                timeline.innerHTML = '<p style="color:var(--text-muted);">لا يوجد سجل صيانة لهذه العهدة حتى الآن.</p>';
             } else {
                 tickets.forEach(t => {
                     const date = new Date(t.created_at).toLocaleDateString('ar-EG');
-                    let workOrderInfo = '';
+                    let woInfo = '';
                     
                     if (t.work_orders && t.work_orders.length > 0) {
                         const wo = t.work_orders[0];
                         const cost = wo.costs && wo.costs.length > 0 ? wo.costs[0].amount : 0;
-                        workOrderInfo = `
-                            <div style="margin-top:5px; font-size:13px; color:#28a745;">
-                                <strong>تم الإصلاح بواسطة:</strong> ${wo.technician_name} <br>
-                                <strong>التكلفة:</strong> ${cost} جنيه
-                            </div>
-                        `;
+                        woInfo = `<div style="margin-top:8px; font-size:13px; color:var(--success); background:#d1fae5; padding:8px; border-radius:6px;">
+                            <strong>تم الإصلاح بواسطة:</strong> ${wo.technician_name} | <strong>التكلفة:</strong> ${cost} جنيه
+                        </div>`;
                     } else {
-                        workOrderInfo = `<div style="margin-top:5px; font-size:13px; color:#dc3545;">لم يتم الإصلاح بعد (بلاغ ${t.status === 'open' ? 'مفتوح' : 'قيد العمل'})</div>`;
+                        woInfo = `<div style="margin-top:8px; font-size:13px; color:var(--warning); background:#fef3c7; padding:8px; border-radius:6px;">قيد الصيانة...</div>`;
                     }
 
                     timeline.innerHTML += `
                         <div class="timeline-item">
                             <div class="timeline-date">${date}</div>
-                            <div><strong>بلاغ عطل:</strong> ${t.description}</div>
-                            ${workOrderInfo}
+                            <div style="font-weight:600;">بلاغ: ${t.description}</div>
+                            ${woInfo}
                         </div>
                     `;
                 });
@@ -356,6 +494,7 @@
             document.getElementById('asset-details-modal').style.display = 'flex';
         }
 
+        // ================= البلاغات =================
         async function loadTickets() {
             const { data } = await supabase.from('tickets').select(`
                 *, branches (name), assets (name), work_orders (costs (amount))
@@ -364,28 +503,34 @@
             const tbody = document.querySelector('#tickets-table tbody');
             tbody.innerHTML = '';
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد بلاغات حالياً</td></tr>'; return;
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد بلاغات حالياً</td></tr>'; return;
             }
             data.forEach(ticket => {
                 let actionBtn = '';
+                let badgeClass = 'badge-warning';
+                let statusText = 'مفتوح';
+
+                if (ticket.status === 'in_progress') { badgeClass = 'badge-warning'; statusText = 'جاري العمل'; }
+                if (ticket.status === 'closed') { badgeClass = 'badge-gray'; statusText = 'مغلق'; }
+
                 if (ticket.status === 'open' || ticket.status === 'in_progress') {
-                    actionBtn = `<button onclick="openCloseModal(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">إغلاق وإضافة صيانة</button>`;
+                    actionBtn = `<button class="btn btn-primary" style="padding:5px 10px; font-size:12px;" onclick="openCloseModal(${ticket.id})">إنهاء وإصلاح</button>`;
                 }
-                const statusText = ticket.status === 'open' ? 'مفتوح' : (ticket.status === 'in_progress' ? 'جاري العمل' : 'مغلق');
                 
-                // حساب التكلفة لو موجودة
                 let cost = '-';
                 if (ticket.work_orders && ticket.work_orders.length > 0) {
                     const wo = ticket.work_orders[0];
-                    if (wo.costs && wo.costs.length > 0) cost = wo.costs[0].amount + ' جنيه';
+                    if (wo.costs && wo.costs.length > 0) cost = wo.costs[0].amount + ' ج';
                 }
 
                 tbody.innerHTML += `
                     <tr>
-                        <td>#${ticket.id}</td><td>${ticket.branches?.name || '-'}</td><td>${ticket.assets?.name || '-'}</td>
+                        <td style="font-weight:700;">#${ticket.id}</td>
+                        <td>${ticket.branches?.name || '-'}</td>
+                        <td>${ticket.assets?.name || '-'}</td>
                         <td>${ticket.description}</td>
-                        <td><span class="status-badge status-${ticket.status}">${statusText}</span></td>
-                        <td>${cost}</td>
+                        <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                        <td style="font-weight:600; color:var(--success);">${cost}</td>
                         <td class="no-print">${actionBtn}</td>
                     </tr>`;
             });
@@ -429,10 +574,14 @@
 
             document.getElementById('close-modal').style.display = 'none';
             document.getElementById('after-image').value = '';
-            loadTickets(); loadAssets();
+            loadTickets(); loadAssets(); loadDashboard();
         }
 
-        loadBranches(); loadAssets(); loadTickets();
+        // التشغيل الأولي
+        loadBranches(); 
+        loadAssets(); 
+        loadTickets();
+        loadDashboard();
     </script>
 </body>
 </html>
