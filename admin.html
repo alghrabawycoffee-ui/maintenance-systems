@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم الأدمن</title>
+    <title>لوحة تحكم الأدمن - المحسنة</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #eef2f5; margin: 0; padding: 20px; }
         .header { background: #343a40; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -23,9 +23,14 @@
         .status-closed { background: #6c757d; }
         .status-working { background: #28a745; }
         .status-broken { background: #dc3545; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 400px; }
-        img { max-width: 50px; border-radius: 5px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; overflow-y: auto;}
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; margin: 20px auto; }
+        .btn-view { background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        
+        .timeline { position: relative; max-width: 100%; margin: 20px 0; padding-right: 20px; border-right: 3px solid #007bff; }
+        .timeline-item { margin-bottom: 15px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; right: -28px; top: 5px; width: 13px; height: 13px; border-radius: 50%; background: #007bff; border: 2px solid white; }
+        .timeline-date { font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
@@ -36,8 +41,8 @@
 
     <div class="nav-tabs">
         <button id="btn-branches" onclick="showTab('branches')">إدارة الفروع</button>
-        <button id="btn-assets" onclick="showTab('assets')">إدارة العهد</button>
-        <button id="btn-tickets" class="active" onclick="showTab('tickets')">البلاغات الواردة</button>
+        <button id="btn-assets" class="active" onclick="showTab('assets')">إدارة العهد</button>
+        <button id="btn-tickets" onclick="showTab('tickets')">البلاغات</button>
     </div>
 
     <!-- قسم الفروع -->
@@ -55,43 +60,80 @@
     </div>
 
     <!-- قسم العهد -->
-    <div id="tab-assets" class="content-box">
-        <h3>إضافة عهدة جديدة</h3>
-        <form id="add-asset-form" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <input type="text" id="asset-code" placeholder="كود العهدة (AST-001)" required>
-            <input type="text" id="asset-name" placeholder="اسم العهدة" required>
-            <select id="asset-type" required>
-                <option value="">النوع...</option>
-                <option value="ماكينة">ماكينة</option>
-                <option value="تكييف">تكييف</option>
-                <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
-                <option value="عربية">عربية</option>
-                <option value="أخرى">أخرى</option>
+    <div id="tab-assets" class="content-box active">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>إدارة العهد</h3>
+            <button onclick="document.getElementById('add-asset-modal').style.display='flex'" style="background:#28a745;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">+ إضافة عهدة جديدة</button>
+        </div>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; align-items:center;">
+            <label>اختر الفرع لعرض عهده:</label>
+            <select id="filter-branch" onchange="loadAssets()" style="padding:8px; border-radius:5px;">
+                <option value="">كل الفروع</option>
             </select>
-            <select id="asset-branch" required><option value="">اختر الفرع...</option></select>
-            <button type="submit">إضافة العهدة</button>
-        </form>
-        <h3 style="margin-top: 30px;">قائمة العهد</h3>
+        </div>
+
         <table id="assets-table">
-            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الفرع</th><th>الحالة</th></tr></thead>
+            <thead><tr><th>كود العهدة</th><th>الاسم</th><th>النوع</th><th>الفرع</th><th>الحالة</th><th>إجراء</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <!-- قسم البلاغات -->
-    <div id="tab-tickets" class="content-box active">
-        <h3>البلاغات الواردة من الفروع</h3>
+    <!-- قسم البلاغات (نفس القديم) -->
+    <div id="tab-tickets" class="content-box">
+        <h3>البلاغات الواردة</h3>
         <table id="tickets-table">
-            <thead>
-                <tr>
-                    <th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>صورة العطل</th><th>الحالة</th><th>إجراء</th>
-                </tr>
-            </thead>
+            <thead><tr><th>رقم البلاغ</th><th>الفرع</th><th>العهدة</th><th>الوصف</th><th>صورة</th><th>الحالة</th><th>إجراء</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <!-- نافذة إغلاق البلاغ (Modal) -->
+    <!-- مودال إضافة عهدة (بيانات كاملة) -->
+    <div id="add-asset-modal" class="modal">
+        <div class="modal-content">
+            <h3>إضافة عهدة جديدة</h3>
+            <form id="add-asset-form">
+                <input type="text" id="asset-code" placeholder="كود العهدة (مثال: AST-001)" required style="width:100%; box-sizing:border-box;">
+                <input type="text" id="asset-name" placeholder="اسم العهدة" required style="width:100%; box-sizing:border-box;">
+                <select id="asset-type" required style="width:100%; box-sizing:border-box;">
+                    <option value="">النوع...</option>
+                    <option value="ماكينة">ماكينة</option>
+                    <option value="تكييف">تكييف</option>
+                    <option value="جهاز كمبيوتر">جهاز كمبيوتر</option>
+                    <option value="عربية">عربية</option>
+                    <option value="أخرى">أخرى</option>
+                </select>
+                <select id="asset-branch" required style="width:100%; box-sizing:border-box;">
+                    <option value="">اختر الفرع...</option>
+                </select>
+                <input type="text" id="asset-model" placeholder="الموديل / الطراز" style="width:100%; box-sizing:border-box;">
+                <input type="text" id="asset-serial" placeholder="الرقم التسلسلي (Serial)" style="width:100%; box-sizing:border-box;">
+                <label style="font-size:14px; color:#555;">تاريخ الشراء:</label>
+                <input type="date" id="asset-purchase" style="width:100%; box-sizing:border-box;">
+                <textarea id="asset-notes" placeholder="ملاحظات إضافية..." style="width:100%; box-sizing:border-box;"></textarea>
+                
+                <button type="submit" style="width:100%; margin-top:10px;">حفظ العهدة</button>
+                <button type="button" onclick="document.getElementById('add-asset-modal').style.display='none'" style="background:#dc3545;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:5px;">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- مودال تفاصيل العهدة والسجل (Timeline) -->
+    <div id="asset-details-modal" class="modal">
+        <div class="modal-content" style="width: 600px;">
+            <h3 id="details-title">تفاصيل العهدة</h3>
+            <div id="details-info" style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">
+                <!-- البيانات هتتحمل هنا -->
+            </div>
+            <h4>سجل الصيانة (Timeline):</h4>
+            <div id="details-timeline" class="timeline">
+                <!-- السجل هيتحمل هنا -->
+            </div>
+            <button onclick="document.getElementById('asset-details-modal').style.display='none'" style="background:#343a40;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;width:100%;margin-top:10px;">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- مودال إغلاق البلاغ (من النسخة السابقة) -->
     <div id="close-modal" class="modal">
         <div class="modal-content">
             <h3>إغلاق البلاغ وإضافة تفاصيل الصيانة</h3>
@@ -125,11 +167,17 @@
         async function loadBranches() {
             const { data } = await supabase.from('branches').select('*').order('id');
             const tbody = document.querySelector('#branches-table tbody');
-            const selectBranch = document.getElementById('asset-branch');
-            tbody.innerHTML = ''; selectBranch.innerHTML = '<option value="">اختر الفرع...</option>';
+            const filterSelect = document.getElementById('filter-branch');
+            const addSelect = document.getElementById('asset-branch');
+            
+            tbody.innerHTML = ''; 
+            filterSelect.innerHTML = '<option value="">كل الفروع</option>';
+            addSelect.innerHTML = '<option value="">اختر الفرع...</option>';
+            
             data?.forEach(branch => {
                 tbody.innerHTML += `<tr><td>${branch.id}</td><td>${branch.name}</td><td>${new Date(branch.created_at).toLocaleDateString('ar-EG')}</td></tr>`;
-                selectBranch.innerHTML += `<option value="${branch.id}">${branch.name}</option>`;
+                filterSelect.innerHTML += `<option value="${branch.id}">${branch.name}</option>`;
+                addSelect.innerHTML += `<option value="${branch.id}">${branch.name}</option>`;
             });
         }
 
@@ -139,14 +187,33 @@
             document.getElementById('branch-name').value = ''; loadBranches();
         });
 
-        async function loadAssets() {
-            const { data } = await supabase.from('assets').select(`*, branches (name)`).order('id', { ascending: false });
+        // تحميل العهد مع الفلترة
+        window.loadAssets = async function() {
+            const filterBranchId = document.getElementById('filter-branch').value;
+            let query = supabase.from('assets').select(`*, branches (name)`).order('id', { ascending: false });
+            
+            if (filterBranchId) query = query.eq('branch_id', filterBranchId);
+
+            const { data } = await query;
             const tbody = document.querySelector('#assets-table tbody');
             tbody.innerHTML = '';
-            data?.forEach(asset => {
+            
+            if(!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد عهد مضافة</td></tr>'; return;
+            }
+
+            data.forEach(asset => {
                 const statusClass = asset.status === 'working' ? 'status-working' : 'status-broken';
                 const statusText = asset.status === 'working' ? 'شغال' : 'عطلان';
-                tbody.innerHTML += `<tr><td>${asset.code}</td><td>${asset.name}</td><td>${asset.type}</td><td>${asset.branches?.name || '-'}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td></tr>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${asset.code}</td>
+                        <td>${asset.name}</td>
+                        <td>${asset.type || '-'}</td>
+                        <td>${asset.branches?.name || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td><button class="btn-view" onclick="viewAssetDetails(${asset.id})">التفاصيل والسجل</button></td>
+                    </tr>`;
             });
         }
 
@@ -156,11 +223,75 @@
                 code: document.getElementById('asset-code').value,
                 name: document.getElementById('asset-name').value,
                 type: document.getElementById('asset-type').value,
-                branch_id: document.getElementById('asset-branch').value
+                branch_id: document.getElementById('asset-branch').value,
+                model: document.getElementById('asset-model').value,
+                serial_number: document.getElementById('asset-serial').value,
+                purchase_date: document.getElementById('asset-purchase').value || null,
+                notes: document.getElementById('asset-notes').value
             }]);
-            document.getElementById('add-asset-form').reset(); loadAssets();
+            document.getElementById('add-asset-form').reset(); 
+            document.getElementById('add-asset-modal').style.display = 'none';
+            loadAssets();
         });
 
+        // عرض تفاصيل العهدة والسجل
+        window.viewAssetDetails = async function(assetId) {
+            // جلب بيانات العهدة
+            const { data: asset } = await supabase.from('assets').select(`*, branches (name)`).eq('id', assetId).single();
+            
+            document.getElementById('details-title').innerText = `تفاصيل: ${asset.name} (${asset.code})`;
+            
+            const purchaseDate = asset.purchase_date ? new Date(asset.purchase_date).toLocaleDateString('ar-EG') : 'غير مسجل';
+            
+            document.getElementById('details-info').innerHTML = `
+                <p><strong>النوع:</strong> ${asset.type || '-'} | <strong>الموديل:</strong> ${asset.model || '-'}</p>
+                <p><strong>الرقم التسلسلي:</strong> ${asset.serial_number || '-'} | <strong>الفرع:</strong> ${asset.branches?.name}</p>
+                <p><strong>تاريخ الشراء:</strong> ${purchaseDate}</p>
+                <p><strong>ملاحظات:</strong> ${asset.notes || 'لا يوجد'}</p>
+            `;
+
+            // جلب سجل البلاغات الخاصة بالعهدة دي
+            const { data: tickets } = await supabase.from('tickets').select(`
+                *,
+                work_orders ( technician_name, status, created_at, costs (amount) )
+            `).eq('asset_id', assetId).order('created_at', { ascending: false });
+
+            const timeline = document.getElementById('details-timeline');
+            timeline.innerHTML = '';
+
+            if (!tickets || tickets.length === 0) {
+                timeline.innerHTML = '<p style="color:#777;">لا يوجد سجل صيانة لهذه العهدة حتى الآن.</p>';
+            } else {
+                tickets.forEach(t => {
+                    const date = new Date(t.created_at).toLocaleDateString('ar-EG');
+                    let workOrderInfo = '';
+                    
+                    if (t.work_orders && t.work_orders.length > 0) {
+                        const wo = t.work_orders[0];
+                        const cost = wo.costs && wo.costs.length > 0 ? wo.costs[0].amount : 0;
+                        workOrderInfo = `
+                            <div style="margin-top:5px; font-size:13px; color:#28a745;">
+                                <strong>تم الإصلاح بواسطة:</strong> ${wo.technician_name} <br>
+                                <strong>التكلفة:</strong> ${cost} جنيه
+                            </div>
+                        `;
+                    } else {
+                        workOrderInfo = `<div style="margin-top:5px; font-size:13px; color:#dc3545;">لم يتم الإصلاح بعد (بلاغ ${t.status === 'open' ? 'مفتوح' : 'قيد العمل'})</div>`;
+                    }
+
+                    timeline.innerHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${date}</div>
+                            <div><strong>بلاغ عطل:</strong> ${t.description}</div>
+                            ${workOrderInfo}
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('asset-details-modal').style.display = 'flex';
+        }
+
+        // ================= قسم البلاغات وإغلاقها =================
         async function loadTickets() {
             const { data } = await supabase.from('tickets').select(`*, branches (name), assets (name)`).order('id', { ascending: false });
             const tbody = document.querySelector('#tickets-table tbody');
@@ -173,7 +304,7 @@
                 if (ticket.status === 'open' || ticket.status === 'in_progress') {
                     actionBtn = `<button onclick="openCloseModal(${ticket.id})" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">إغلاق وإضافة صيانة</button>`;
                 }
-                const imgHtml = ticket.image_url ? `<img src="${ticket.image_url}" onclick="window.open(this.src)">` : '-';
+                const imgHtml = ticket.image_url ? `<img src="${ticket.image_url}" onclick="window.open(this.src)" style="max-width:50px;cursor:pointer;">` : '-';
                 const statusText = ticket.status === 'open' ? 'مفتوح' : (ticket.status === 'in_progress' ? 'جاري العمل' : 'مغلق');
                 tbody.innerHTML += `
                     <tr>
@@ -200,7 +331,6 @@
 
             if(!techName || !costAmount) return alert('املأ بيانات الفني والتكلفة');
 
-            // رفع صورة ما بعد الإصلاح
             if (file) {
                 const fileName = `after_${Date.now()}.${file.name.split('.').pop()}`;
                 const { error } = await supabase.storage.from('tickets').upload(fileName, file);
@@ -210,19 +340,14 @@
                 }
             }
 
-            // 1. تسجيل أمر الشغل
             const { data: woData, error: woError } = await supabase.from('work_orders').insert([{
                 ticket_id: ticketId, technician_name: techName, technician_type: techType, status: 'done', after_image_url: afterImgUrl
             }]).select().single();
 
             if (!woError && woData) {
-                // 2. تسجيل التكلفة
                 await supabase.from('costs').insert([{ work_order_id: woData.id, amount: costAmount, entered_by: user.id }]);
-                
-                // 3. تحديث البلاغ لـ مغلق
                 await supabase.from('tickets').update({ status: 'closed' }).eq('id', ticketId);
                 
-                // 4. تحديث العهدة لشغالة تاني
                 const { data: ticketData } = await supabase.from('tickets').select('asset_id').eq('id', ticketId).single();
                 await supabase.from('assets').update({ status: 'working' }).eq('id', ticketData.asset_id);
             }
