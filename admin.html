@@ -3,247 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GLPI-Lite | لوحة التحكم</title>
+    <title>Maintenance System | مدير الصيانة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { 
-            --primary: #2C3E50; --secondary: #34495E; --accent: #3498DB; 
-            --bg: #F4F6F9; --sidebar: #222D32; --border: #D2D6DE; 
-            --danger: #DD4B39; --success: #00A65A; --warning: #F39C12;
-        }
+        /* نفس ستايل GLPI اللي فوق */
+        :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { display: flex; height: 100vh; background: var(--bg); color: #333; font-size: 14px; overflow: hidden; }
-
-        /* Sidebar */
-        .sidebar { width: 250px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; z-index: 10; }
+        body { display: flex; height: 100vh; background: var(--glpi-bg); color: #333; font-size: 14px; overflow: hidden; }
+        .sidebar { width: 250px; background: var(--glpi-sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
         .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
-        .sidebar-header i { color: var(--accent); margin-left: 10px; }
-        .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto; }
+        .sidebar-header i { color: var(--glpi-accent); margin-left: 10px; }
+        .nav-menu { padding: 10px 0; flex-grow: 1; }
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
         .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
-        .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--accent); }
+        .nav-btn:hover, .nav-btn.active { background: var(--glpi-sidebar-hover); color: white; border-right-color: var(--glpi-accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
-        .logout-btn { width: 100%; padding: 12px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .logout-btn:hover { background: #C0392B; }
-
-        /* Main */
+        .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .top-header { height: 60px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
+        .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
         .user-profile { font-weight: 700; display: flex; align-items: center; gap: 10px; }
         .content-body { flex: 1; padding: 25px; overflow-y: auto; }
-
-        /* Page Titles */
-        .page-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Tables */
-        .table-container { background: white; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 25px; overflow: hidden; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: right; padding: 14px 20px; font-size: 13px; color: var(--primary); border-bottom: 2px solid var(--border); background: #F4F6F9; }
-        td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: #555; }
+        th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; }
         tbody tr:nth-child(even) { background: #FAFAFA; }
-        tbody tr:hover { background: #EEF3F7; }
-
-        /* Forms & Buttons */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--primary); }
-        .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
-        .form-control:focus { border-color: var(--accent); background: white; }
-        
-        .btn { padding: 8px 15px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--secondary); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-sm { padding: 5px 10px; font-size: 12px; }
-
-        .badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; color: white; display: inline-block; }
-        .bg-green { background: var(--success); }
-        .bg-red { background: var(--danger); }
-        .bg-orange { background: var(--warning); }
-        .bg-blue { background: var(--accent); }
+        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--glpi-navbar); color: white; }
+        .btn-success { background: var(--glpi-success); color: white; }
+        .btn-danger { background: var(--glpi-danger); color: white; }
+        .badge { padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; }
+        .bg-green { background: var(--glpi-success); }
+        .bg-red { background: var(--glpi-danger); }
+        .bg-orange { background: #F39C12; }
         .bg-gray { background: #95A5A6; }
-
-        /* Tabs */
-        .tab { display: none; animation: fadeIn 0.3s; }
-        .tab.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Modals */
+        .tab { display: none; } .tab.active { display: block; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 600px; max-width: 90%; border-radius: 6px; padding: 25px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-content { background: white; width: 600px; max-width: 90%; border-radius: 4px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
-
-        /* Timeline */
-        .timeline { position: relative; padding-right: 20px; margin-top: 20px; border-right: 2px solid var(--border); }
+        .timeline { position: relative; padding-right: 20px; margin-top: 20px; border-right: 2px solid var(--glpi-border); }
         .timeline-item { margin-bottom: 20px; position: relative; }
-        .timeline-item::before { content: ''; position: absolute; right: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid white; }
+        .timeline-item::before { content: ''; position: absolute; right: -26px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--glpi-accent); border: 2px solid white; }
         .timeline-date { font-size: 12px; color: #777; margin-bottom: 5px; }
-
-        /* Print */
-        @media print {
-            .sidebar, .top-header, .nav-menu, .btn, .modal { display: none !important; }
-            body { display: block; height: auto; overflow: visible; background: white; }
-            .content-body { padding: 0; overflow: visible; }
-            .tab { display: none !important; } .tab.active { display: block !important; }
-            .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            th, td { border: 1px solid #000; }
-        }
+        @media print { .sidebar, .top-header, .nav-menu, .btn, .modal { display: none !important; } body { display: block; height: auto; overflow: visible; } .content-body { padding: 0; } .tab { display: none !important; } .tab.active { display: block !important; } .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; } th, td { border: 1px solid #000; } }
         .print-header { display: none; }
     </style>
 </head>
 <body>
-
     <div class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-cogs"></i> GLPI-Lite</div>
+        <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance</div>
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('dash', this)"><i class="fas fa-tachometer-alt"></i> لوحة القيادة</button>
             <button class="nav-btn" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر (Tickets)</button>
             <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> الأصول (Assets)</button>
-            <button class="nav-btn" onclick="showTab('branches', this)"><i class="fas fa-sitemap"></i> الفروع</button>
-            <button class="nav-btn" onclick="showTab('users', this)"><i class="fas fa-users"></i> المستخدمين</button>
         </div>
-        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button></div>
+        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
     </div>
 
     <div class="main-content">
         <div class="top-header">
-            <div><i class="fas fa-search"></i> بحث...</div>
-            <div class="user-profile"><span id="header-username">Admin</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
+            <div class="header-search"><i class="fas fa-search"></i><input type="text" placeholder="بحث سريع..."></div>
+            <div class="user-profile"><span id="header-username">مدير صيانة</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
         </div>
 
         <div class="content-body">
-            <!-- 1. Dashboard -->
             <div id="tab-dash" class="tab active">
-                <div class="print-header"><h1>GLPI-Lite</h1><p>تقرير لوحة القيادة - <span class="print-date"></span></p></div>
-                <div class="page-title">
-                    <span><i class="fas fa-tachometer-alt"></i> لوحة القيادة</span>
-                    <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
-                </div>
-                <div class="cards-row">
-                    <div class="card"><div class="card-info"><h4>إجمالي الأصول</h4><h2 id="st-assets">0</h2></div><i class="fas fa-boxes card-icon"></i></div>
-                    <div class="card"><div class="card-info"><h4>تذاكر مفتوحة</h4><h2 id="st-tickets" style="color:var(--danger);">0</h2></div><i class="fas fa-ticket-alt card-icon"></i></div>
-                </div>
-                <div class="card" style="display:block; margin-top:20px;">
-                    <canvas id="adminChart" style="height:250px;"></canvas>
-                </div>
-            </div>
-
-            <!-- 2. Assets -->
-            <div id="tab-assets" class="tab">
-                <div class="print-header"><h1>GLPI-Lite</h1><p>تقرير الأصول - <span class="print-date"></span></p></div>
-                <div class="page-title">
-                    <span><i class="fas fa-desktop"></i> إدارة الأصول</span>
-                    <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
-                </div>
-                
-                <div class="table-container">
-                    <div class="table-header"><span class="table-title">إضافة أصل جديد</span></div>
-                    <div style="padding:20px;">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="a-code" class="form-control"></div>
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control"></div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الفرع</label><select id="a-branch" class="form-control"></select></div>
-                            <div class="form-group"><label class="form-label">الماركة</label><input type="text" id="a-brand" class="form-control"></div>
-                        </div>
-                        <button class="btn btn-success" onclick="addAsset()"><i class="fas fa-plus"></i> حفظ</button>
+                <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة القيادة</span></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                    <div class="table-container" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><h4 style="color:#777; margin-bottom:5px;">إجمالي الأصول</h4><h2 id="st-assets" style="font-size:30px; color:var(--glpi-navbar);">0</h2></div>
+                        <i class="fas fa-boxes" style="font-size:40px; color:#eee;"></i>
+                    </div>
+                    <div class="table-container" style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><h4 style="color:#777; margin-bottom:5px;">التذاكر المفتوحة</h4><h2 id="st-tickets" style="font-size:30px; color:var(--glpi-danger);">0</h2></div>
+                        <i class="fas fa-ticket-alt" style="font-size:40px; color:#eee;"></i>
                     </div>
                 </div>
-
-                <div class="table-container">
-                    <table id="tbl-assets">
-                        <thead><tr><th>الكود</th><th>الاسم</th><th>الفرع</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="table-container" style="padding:20px;"><canvas id="managerChart" style="height:250px;"></canvas></div>
             </div>
 
-            <!-- 3. Tickets -->
             <div id="tab-tickets" class="tab">
-                <div class="print-header"><h1>GLPI-Lite</h1><p>تقرير التذاكر - <span class="print-date"></span></p></div>
-                <div class="page-title">
-                    <span><i class="fas fa-ticket-alt"></i> التذاكر (Tickets)</span>
-                    <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
-                </div>
-                
+                <div class="print-header"><h1>Maintenance System</h1><p>تقرير التذاكر - <span class="print-date"></span></p></div>
+                <div class="page-title"><span><i class="fas fa-ticket-alt"></i> التذاكر</span><button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button></div>
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">إنشاء تذكرة جديدة</span></div>
-                    <div style="padding:20px;">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">العنوان</label><input type="text" id="t-title" class="form-control"></div>
-                            <div class="form-group"><label class="form-label">الأصل</label><select id="t-asset" class="form-control"></select></div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الأولوية</label><select id="t-priority" class="form-control"><option value="low">منخفضة</option><option value="normal" selected>عادية</option><option value="high">عالية</option><option value="urgent">عاجلة</option></select></div>
-                            <div class="form-group"><label class="form-label">مسند إلى</label><select id="t-assigned" class="form-control"></select></div>
-                        </div>
-                        <div class="form-group"><label class="form-label">الوصف</label><textarea id="t-desc" class="form-control" rows="2"></textarea></div>
-                        <button class="btn btn-primary" onclick="addTicket()"><i class="fas fa-plus"></i> إنشاء</button>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <table id="tbl-tickets">
-                        <thead><tr><th>#</th><th>العنوان</th><th>الأصل</th><th>الحالة</th><th>الإجراء</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>العنوان</th><th>الأصل</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <!-- 4. Branches -->
-            <div id="tab-branches" class="tab">
-                <div class="print-header"><h1>GLPI-Lite</h1><p>تقرير الفروع - <span class="print-date"></span></p></div>
-                <div class="page-title"><span><i class="fas fa-sitemap"></i> الفروع</span></div>
+            <div id="tab-assets" class="tab">
+                <div class="print-header"><h1>Maintenance System</h1><p>تقرير الأصول - <span class="print-date"></span></p></div>
+                <div class="page-title"><span><i class="fas fa-desktop"></i> الأصول</span><button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button></div>
                 <div class="table-container">
-                    <div class="table-header"><span class="table-title">إضافة فرع جديد</span></div>
-                    <div style="padding:20px; display:flex; gap:10px;">
-                        <input type="text" id="b-name" class="form-control" placeholder="اسم الفرع">
-                        <button class="btn btn-success" onclick="addBranch()"><i class="fas fa-plus"></i> حفظ</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="tbl-branches"><thead><tr><th>#</th><th>اسم الفرع</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الفرع</th><th>الحالة</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
-
-            <!-- 5. Users -->
-            <div id="tab-users" class="tab">
-                <div class="print-header"><h1>GLPI-Lite</h1><p>تقرير المستخدمين - <span class="print-date"></span></p></div>
-                <div class="page-title"><span><i class="fas fa-users"></i> المستخدمين</span></div>
-                <div class="table-container">
-                    <div class="table-header"><span class="table-title">إضافة مستخدم</span></div>
-                    <div style="padding:20px;">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الاسم</label><input type="text" id="u-name" class="form-control"></div>
-                            <div class="form-group"><label class="form-label">الباسورد</label><input type="text" id="u-pass" class="form-control"></div>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">الصلاحية</label><select id="u-role" class="form-control" onchange="toggleBranchField()"><option value="branch_manager">مدير فرع</option><option value="maintenance_manager">مدير صيانة</option><option value="admin">أدمن</option></select></div>
-                            <div class="form-group" id="u-branch-group"><label class="form-label">الفرع</label><select id="u-branch" class="form-control"></select></div>
-                        </div>
-                        <button class="btn btn-success" onclick="addUser()"><i class="fas fa-plus"></i> إضافة</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="tbl-users"><thead><tr><th>الاسم</th><th>الصلاحية</th><th>الفرع</th><th>حذف</th></tr></thead><tbody></tbody></table>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- Modal: Ticket Timeline -->
     <div id="ticket-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3 id="modal-title">تفاصيل التذكرة</h3><button class="modal-close" onclick="document.getElementById('ticket-modal').style.display='none'">&times;</button></div>
             <div id="modal-body"></div>
-            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+            <div style="margin-top:20px; border-top:1px solid var(--glpi-border); padding-top:15px;">
                 <label class="form-label">إضافة تحديث:</label>
                 <input type="text" id="update-text" class="form-control" placeholder="أضف تفاصيل الإجراء...">
                 <button class="btn btn-primary" onclick="addUpdate()" style="margin-top:10px; width:100%;">إضافة</button>
@@ -255,7 +121,7 @@
     <script type="module">
         import { supabase } from './js/supabase.js'
         const user = JSON.parse(localStorage.getItem('user'));
-        if(!user || user.role !== 'admin') window.location.href = 'index.html';
+        if(!user || user.role !== 'maintenance_manager') window.location.href = 'index.html';
         document.getElementById('header-username').innerText = user.username;
         document.querySelectorAll('.print-date').forEach(el => el.innerText = new Date().toLocaleDateString('ar-EG'));
 
@@ -266,75 +132,40 @@
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
         }
-        window.toggleBranchField = () => {
-            document.getElementById('u-branch-group').style.display = document.getElementById('u-role').value === 'branch_manager' ? 'block' : 'none';
-        }
 
         let myChart = null;
         async function loadData() {
-            const { data: branches } = await supabase.from('branches').select('*');
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name)');
-            const { data: users } = await supabase.from('users').select('*, branches(name)');
 
             document.getElementById('st-assets').innerText = assets?.length || 0;
             document.getElementById('st-tickets').innerText = tickets?.filter(t => t.status !== 'closed').length || 0;
 
-            const selA = document.getElementById('a-branch'); const selU = document.getElementById('u-branch'); const selT = document.getElementById('t-asset');
-            selA.innerHTML = ''; selU.innerHTML = ''; selT.innerHTML = '';
-            branches?.forEach(b => { selA.innerHTML += `<option value="${b.id}">${b.name}</option>`; selU.innerHTML += `<option value="${b.id}">${b.name}</option>`; });
-            assets?.forEach(a => { selT.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`; });
-
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
             assets?.forEach(a => {
-                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name}</td><td>${a.status === 'working' ? 'سليم' : 'عطلان'}</td><td><button class="btn btn-danger btn-sm" onclick="deleteAsset(${a.id})">حذف</button></td></tr>`;
+                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name}</td><td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td></tr>`;
             });
 
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.title}</td><td>${t.assets?.name}</td><td>${t.status}</td><td><button class="btn btn-primary btn-sm" onclick="openTicket(${t.id})">عرض</button></td></tr>`;
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.title}</td><td>${t.assets?.name}</td><td>${t.status}</td><td><button class="btn btn-success" onclick="openTicket(${t.id})">إغلاق وإصلاح</button></td></tr>`;
             });
 
-            const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
-            branches?.forEach(b => { tbodyB.innerHTML += `<tr><td>#${b.id}</td><td>${b.name}</td></tr>`; });
-
-            const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
-            users?.forEach(u => { tbodyU.innerHTML += `<tr><td>${u.username}</td><td>${u.role}</td><td>${u.branches?.name || 'كل الفروع'}</td><td><button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">حذف</button></td></tr>`; });
-
-            const ctx = document.getElementById('adminChart').getContext('2d');
+            const ctx = document.getElementById('managerChart').getContext('2d');
             if(myChart) myChart.destroy();
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: ['مفتوحة', 'قيد المعالجة', 'مغلقة'], datasets: [{ data: [tickets?.filter(t=>t.status==='open').length, tickets?.filter(t=>t.status==='in_progress').length, tickets?.filter(t=>t.status==='closed').length], backgroundColor: ['#F39C12', '#3498DB', '#95A5A6'] }] },
-                options: { plugins: { legend: { display: false } } }
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
         }
         loadData();
-
-        // --- CRUD Operations ---
-        window.addBranch = async () => { const name = document.getElementById('b-name').value; if(name) { await supabase.from('branches').insert([{ name }]); loadData(); } };
-        window.addAsset = async () => { const code = document.getElementById('a-code').value; const name = document.getElementById('a-name').value; const branch_id = document.getElementById('a-branch').value; const brand = document.getElementById('a-brand').value; if(code && name && branch_id) { await supabase.from('assets').insert([{ code, name, branch_id, brand }]); loadData(); } };
-        window.deleteAsset = async (id) => { if(confirm('حذف الأصل؟')) { await supabase.from('assets').delete().eq('id', id); loadData(); } };
-        window.deleteUser = async (id) => { if(confirm('حذف المستخدم؟')) { await supabase.from('users').delete().eq('id', id); loadData(); } };
-
-        window.addTicket = async () => {
-            const title = document.getElementById('t-title').value;
-            const asset_id = document.getElementById('t-asset').value;
-            const priority = document.getElementById('t-priority').value;
-            const description = document.getElementById('t-desc').value;
-            if(title && asset_id && description) {
-                const { data: a } = await supabase.from('assets').select('branch_id').eq('id', asset_id).single();
-                await supabase.from('tickets').insert([{ title, asset_id, branch_id: a.branch_id, priority, description, created_by: user.id }]);
-                await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
-                loadData();
-            }
-        };
 
         window.openTicket = async (id) => {
             const { data: t } = await supabase.from('tickets').select('*, assets(name)').eq('id', id).single();
             const { data: u } = await supabase.from('ticket_updates').select('*').eq('ticket_id', id).order('created_at', {ascending:true});
             document.getElementById('modal-title').innerText = `تذكرة #${t.id} - ${t.title}`;
-            let html = `<p><strong>الأصل:</strong> ${t.assets?.name}</p><p><strong>الوصف:</strong> ${t.description}</p>`;
+            let html = `<p style="margin-bottom:10px;"><strong>الأصل:</strong> ${t.assets?.name}</p><p style="margin-bottom:10px;"><strong>الوصف:</strong> ${t.description}</p>`;
             html += '<div class="timeline">';
             u?.forEach(up => { html += `<div class="timeline-item"><div class="timeline-date">${new Date(up.created_at).toLocaleString('ar-EG')}</div><div>${up.update_text}</div></div>`; });
             html += '</div>';
