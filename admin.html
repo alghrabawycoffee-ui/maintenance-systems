@@ -5,8 +5,17 @@
     <title>لوحة تحكم الأدمن</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #eef2f5; margin: 0; padding: 20px; }
-        .header { background: #343a40; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .header { background: #343a40; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-tabs button { padding: 10px 20px; border: none; background: #fff; border-radius: 5px; cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .nav-tabs button.active { background: #007bff; color: white; }
+        .content-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input, button[type="submit"] { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
+        button[type="submit"] { background: #28a745; color: white; border: none; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: right; }
+        th { background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -16,25 +25,98 @@
         <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
     </div>
 
-    <div style="margin-top: 20px; background: white; padding: 20px; border-radius: 8px;">
-        <h3 id="welcome-msg">أهلاً بيك...</h3>
-        <p>من هنا هتقدر تضيف فروع، تشوف البلاغات، وتدير السيستم.</p>
+    <!-- أزرار التنقل -->
+    <div class="nav-tabs">
+        <button id="btn-branches" class="active" onclick="showTab('branches')">إدارة الفروع</button>
+        <!-- هنضيف أزرار تانية هنا بعدين -->
     </div>
 
-    <script>
-        // التأكد إن اللي داخل أدمن فعلاً
-        const user = JSON.parse(localStorage.getItem('user'));
+    <!-- قسم الفروع -->
+    <div id="tab-branches" class="content-box">
+        <h3>إضافة فرع جديد</h3>
+        <form id="add-branch-form">
+            <input type="text" id="branch-name" placeholder="اسم الفرع (مثال: فرع القاهرة)" required>
+            <button type="submit">إضافة الفرع</button>
+        </form>
 
+        <h3 style="margin-top: 30px;">قائمة الفروع</h3>
+        <table id="branches-table">
+            <thead>
+                <tr>
+                    <th>كود الفرع</th>
+                    <th>اسم الفرع</th>
+                    <th>تاريخ الإضافة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- البيانات هتتحمل هنا بالـ JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { supabase } from './js/supabase.js'
+
+        // 1. التأكد من تسجيل الدخول
+        const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') {
-            window.location.href = 'index.html'; // لو مش أدمن يطرده لصفحة الدخول
-        } else {
-            document.getElementById('welcome-msg').innerText = `أهلاً بيك يا ${user.username} في لوحة التحكم`;
+            window.location.href = 'index.html';
         }
 
-        function logout() {
+        // 2. دالة تسجيل الخروج
+        window.logout = function() {
             localStorage.removeItem('user');
             window.location.href = 'index.html';
         }
+
+        // 3. دالة لجلب الفروع وعرضها في الجدول
+        async function loadBranches() {
+            const { data, error } = await supabase.from('branches').select('*').order('id', { ascending: false });
+            
+            const tbody = document.querySelector('#branches-table tbody');
+            tbody.innerHTML = ''; // تفريغ الجدول قبل إضافة البيانات
+
+            if (error) {
+                console.error('Error fetching branches:', error);
+                return;
+            }
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا توجد فروع مضافة حتى الآن</td></tr>';
+                return;
+            }
+
+            data.forEach(branch => {
+                const tr = document.createElement('tr');
+                // تنسيق التاريخ
+                const date = new Date(branch.created_at).toLocaleDateString('ar-EG');
+                tr.innerHTML = `
+                    <td>${branch.id}</td>
+                    <td>${branch.name}</td>
+                    <td>${date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 4. إضافة فرع جديد
+        document.getElementById('add-branch-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); // منع الصفحة من إعادة التحميل
+            const branchName = document.getElementById('branch-name').value;
+
+            const { error } = await supabase.from('branches').insert([{ name: branchName }]);
+
+            if (error) {
+                alert('حدث خطأ أثناء إضافة الفرع: ' + error.message);
+            } else {
+                alert('تم إضافة الفرع بنجاح!');
+                document.getElementById('branch-name').value = ''; // تفريغ الخانة
+                loadBranches(); // تحديث الجدول
+            }
+        });
+
+        // تشغيل جلب الفروع أول ما الصفحة تفتح
+        loadBranches();
     </script>
 </body>
 </html>
