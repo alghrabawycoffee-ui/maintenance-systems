@@ -3,94 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدير الفرع | الغرباوي</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>نظام الصيانة | مدير الفرع</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        
-        :root { --brand: #9A4632; --bg: #F3F4F6; }
+        :root { --primary: #2C3E50; --secondary: #34495E; --accent: #3498DB; --bg: #F4F6F9; --sidebar: #222D32; --border: #D2D6DE; --danger: #DD4B39; --success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { display: flex; height: 100vh; background: var(--bg); }
-        .sidebar { width: 250px; background: #2D1B16; color: white; display: flex; flex-direction: column; }
-        .sidebar h2 { padding: 20px; text-align: center; border-bottom: 1px solid #444; }
-        .nav-btn { padding: 15px; background: none; border: none; color: #ccc; text-align: right; cursor: pointer; font-size: 16px; }
-        .nav-btn.active { background: var(--brand); color: white; }
-        .main { flex: 1; padding: 20px; }
-        .tab { display: none; background: white; padding: 20px; border-radius: 10px; }
+        body { display: flex; height: 100vh; background: var(--bg); color: #333; font-size: 14px; overflow: hidden; }
+        .sidebar { width: 250px; background: var(--sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
+        .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
+        .sidebar-header i { color: var(--accent); margin-left: 10px; }
+        .nav-menu { padding: 10px 0; flex-grow: 1; }
+        .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
+        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
+        .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--accent); }
+        .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
+        .logout-btn { width: 100%; padding: 12px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { height: 60px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .content-body { flex: 1; padding: 25px; overflow-y: auto; }
+        .page-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+        .table-container { background: white; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 25px; }
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: right; padding: 14px 20px; font-size: 13px; color: var(--primary); border-bottom: 2px solid var(--border); background: #F4F6F9; }
+        td { padding: 14px 20px; border-bottom: 1px solid var(--border); color: #555; }
+        tbody tr:nth-child(even) { background: #FAFAFA; }
+        .btn { padding: 10px 20px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; display: inline-flex; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--primary); }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .tab { display: none; }
         .tab.active { display: block; }
-        .input { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { padding: 10px 20px; background: var(--brand); color: white; border: none; border-radius: 5px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: right; }
+        @media print {
+            .sidebar, .top-header, .nav-menu, .btn { display: none !important; }
+            body { display: block; height: auto; overflow: visible; }
+            .content-body { padding: 0; overflow: visible; }
+            .tab { display: none !important; } .tab.active { display: block !important; }
+            .print-header { display: block !important; text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; }
+            th, td { border: 1px solid #000; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>الغرباوي</h2>
-        <button class="nav-btn active" onclick="showTab('tickets')">البلاغات</button>
-        <button class="nav-btn" onclick="showTab('assets')">عهد الفرع</button>
-        <div style="margin-top: auto; padding: 20px;">
-            <button class="btn" style="background: #DC2626; width: 100%;" onclick="logout()">خروج</button>
+        <div class="sidebar-header"><i class="fas fa-cogs"></i> Maintenance</div>
+        <div class="nav-menu">
+            <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> بلاغات الفرع</button>
+            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-server"></i> أصول الفرع</button>
         </div>
+        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button></div>
     </div>
 
-    <div class="main">
-        <div id="tab-tickets" class="tab active">
-            <h3>إرسال بلاغ عطل</h3>
-            <select id="t-asset" class="input"></select>
-            <textarea id="t-desc" class="input" rows="3" placeholder="وصف العطل..."></textarea>
-            <button class="btn" onclick="sendTicket()">إرسال</button>
-            <table id="tbl-tickets"><thead><tr><th>#</th><th>العهدة</th><th>الوصف</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+    <div class="main-content">
+        <div class="top-header">
+            <div><i class="fas fa-search"></i> بحث...</div>
+            <div class="user-profile"><span id="header-username">مدير فرع</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
         </div>
 
-        <div id="tab-assets" class="tab">
-            <h3>عهد الفرع</h3>
-            <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+        <div class="content-body">
+            <div id="tab-tickets" class="tab active">
+                <div class="print-header"><h1>Maintenance System</h1><p>تقرير بلاغات الفرع - <span class="print-date"></span></p></div>
+                <div class="page-title"><span><i class="fas fa-ticket-alt"></i> بلاغات الفرع</span><button class="btn btn-outline" onclick="window.print()">طباعة السجل</button></div>
+                
+                <div class="table-container">
+                    <div class="table-header">إرسال بلاغ عطل</div>
+                    <div style="padding:20px;">
+                        <div class="form-group"><label class="form-label">الأصل (العهدة)</label><select id="t-asset" class="form-control"></select></div>
+                        <div class="form-group"><label class="form-label">وصف العطل</label><textarea id="t-desc" class="form-control" rows="2"></textarea></div>
+                        <button class="btn btn-primary" onclick="addTicket()">إرسال البلاغ</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الوصف</th><th>الأصل</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
+
+            <div id="tab-assets" class="tab">
+                <div class="print-header"><h1>Maintenance System</h1><p>تقرير أصول الفرع - <span class="print-date"></span></p></div>
+                <div class="page-title"><span><i class="fas fa-server"></i> أصول الفرع</span><button class="btn btn-outline" onclick="window.print()">طباعة السجل</button></div>
+                <div class="table-container">
+                    <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js'
         const user = JSON.parse(localStorage.getItem('user'));
-        if(!user) window.location.href = 'index.html';
+        if(!user || user.role !== 'branch_manager') window.location.href = 'index.html';
+        document.getElementById('header-username').innerText = user.username;
+        document.querySelectorAll('.print-date').forEach(el => el.innerText = new Date().toLocaleDateString('ar-EG'));
 
         window.logout = () => { localStorage.removeItem('user'); window.location.href = 'index.html'; }
-        window.showTab = (id) => {
+        window.showTab = (id, btn) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
+            if(btn) btn.classList.add('active');
         }
 
         async function loadData() {
+            // جلب أصول الفرع فقط
             const { data: assets } = await supabase.from('assets').select('*').eq('branch_id', user.branch_id);
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
             const selA = document.getElementById('t-asset'); selA.innerHTML = '';
-            
-            if(assets && assets.length > 0) {
-                assets.forEach(a => {
-                    tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.status}</td></tr>`;
-                    selA.innerHTML += `<option value="${a.id}">${a.name}</option>`;
-                });
-            } else {
-                tbodyA.innerHTML = '<tr><td colspan="3">لا توجد عهد لهذا الفرع</td></tr>';
-            }
+            assets?.forEach(a => {
+                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.status === 'working' ? 'سليم' : 'عطلان'}</td></tr>`;
+                selA.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`;
+            });
 
-            const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', user.branch_id);
+            // جلب بلاغات الفرع فقط
+            const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', user.branch_id).order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.assets?.name}</td><td>${t.description}</td><td>${t.status}</td></tr>`;
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${t.status === 'open' ? 'مفتوح' : (t.status === 'closed' ? 'مغلق' : 'قيد المعالجة')}</td></tr>`;
             });
         }
         loadData();
 
-        window.sendTicket = async () => {
+        window.addTicket = async () => {
             const asset_id = document.getElementById('t-asset').value;
-            const description = document.getElementById('t-desc').value;
-            if(asset_id && description) {
-                await supabase.from('tickets').insert([{ asset_id, branch_id: user.branch_id, description, created_by: user.id }]);
+            const desc = document.getElementById('t-desc').value;
+            if(asset_id && desc) {
+                await supabase.from('tickets').insert([{ asset_id, branch_id: user.branch_id, title: 'بلاغ عطل', description: desc, created_by: user.id }]);
                 await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
-                loadData();
                 document.getElementById('t-desc').value = '';
-                alert('تم إرسال البلاغ');
+                loadData();
+                alert('تم إرسال البلاغ بنجاح');
             }
         };
     </script>
