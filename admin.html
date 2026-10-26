@@ -3,190 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة مدير الفرع | الغرباوي</title>
+    <title>لوحة التحكم | الغرباوي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --brand: #9A4632; --sidebar: #2D1B16; --bg: #F3F4F6; --border: #E5E7EB; }
+        :root { --brand: #9A4632; --sidebar: #2D1B16; --bg: #F3F4F6; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { display: flex; min-height: 100vh; background: var(--bg); color: #1F2937; }
-        
-        .sidebar { width: 260px; background: var(--sidebar); display: flex; flex-direction: column; }
-        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-header img { width: 100px; border-radius: 8px; margin-bottom: 10px; }
-        .sidebar-header h2 { color: white; font-size: 20px; font-weight: 700; }
-        .nav-menu { padding: 20px 10px; flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
-        .nav-item { padding: 12px 20px; color: #D1D5DB; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; background: transparent; border: none; text-align: right; font-size: 15px; }
-        .nav-item:hover, .nav-item.active { background: var(--brand); color: white; }
-        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .logout-btn { width: 100%; padding: 12px; background: rgba(220,38,38,0.1); color: #FCA5A5; border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; cursor: pointer; font-weight: 700; }
-        .logout-btn:hover { background: #DC2626; color: white; }
-
-        .main { flex-grow: 1; padding: 30px; overflow-y: auto; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title { font-size: 26px; font-weight: 800; color: var(--sidebar); }
-        .user-badge { background: white; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); font-weight: 700; color: var(--brand); }
-
-        .content-box { background: white; border-radius: 12px; border: 1px solid var(--border); display: none; }
-        .content-box.active { display: block; }
-        .box-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #FAFAFA; }
-        .box-title { font-size: 18px; font-weight: 700; }
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: right; }
-        th { background: #F9FAFB; padding: 15px; font-size: 13px; color: #6B7280; border-bottom: 1px solid var(--border); }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-        .bg-success { background: #D1FAE5; color: #065F46; }
-        .bg-danger { background: #FEE2E2; color: #991B1B; }
-        .bg-warning { background: #FEF3C7; color: #92400E; }
-        .bg-gray { background: #F3F4F6; color: #374151; }
-        
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; font-family: 'Cairo', sans-serif; }
-        .btn-brand { background: var(--brand); color: white; }
-        .btn-brand:hover { background: #7A3626; }
-
-        .form-control { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Cairo', sans-serif; background: #FAFAFA; }
-        .form-label { display: block; margin-bottom: 5px; font-weight: 700; font-size: 14px; }
-        .form-group { margin-bottom: 15px; }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 20px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+        body { display: flex; height: 100vh; background: var(--bg); }
+        .sidebar { width: 250px; background: var(--sidebar); color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { padding: 20px; text-align: center; border-bottom: 1px solid #444; }
+        .nav-btn { padding: 15px; background: none; border: none; color: #ccc; text-align: right; cursor: pointer; font-size: 16px; }
+        .nav-btn.active { background: var(--brand); color: white; }
+        .main { flex: 1; padding: 20px; overflow-y: auto; }
+        .tab { display: none; background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .tab.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: right; }
+        th { background: #f9fafb; }
+        .input { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { padding: 10px 20px; background: var(--brand); color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-header">
-            <img id="logo" src="logo.jpg" onerror="this.style.display='none'">
-            <h2 id="company-name">الغرباوي</h2>
-        </div>
-        <div class="nav-menu">
-            <button class="nav-item active" onclick="showTab('tickets')">بلاغات الفرع</button>
-            <button class="nav-item" onclick="showTab('assets')">عهد الفرع</button>
-        </div>
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
+        <h2>الغرباوي</h2>
+        <button class="nav-btn active" onclick="showTab('dash')">لوحة القيادة</button>
+        <button class="nav-btn" onclick="showTab('branches')">الفروع</button>
+        <button class="nav-btn" onclick="showTab('assets')">العهد</button>
+        <button class="nav-btn" onclick="showTab('users')">المستخدمين</button>
+        <div style="margin-top: auto; padding: 20px;">
+            <button class="btn" style="background: #DC2626; width: 100%;" onclick="logout()">خروج</button>
         </div>
     </div>
 
     <div class="main">
-        <div class="top-bar">
-            <h1 class="page-title" id="title">بلاغات الفرع</h1>
-            <div class="user-badge" id="user-info"></div>
+        <!-- Dashboard -->
+        <div id="tab-dash" class="tab active">
+            <h2>مرحباً بك في لوحة القيادة</h2>
+            <p id="user-info" style="margin-top: 20px;"></p>
         </div>
 
-        <div id="tab-tickets" class="content-box active">
-            <div class="box-header">
-                <span class="box-title">البلاغات</span>
-                <button class="btn btn-brand" onclick="document.getElementById('ticket-modal').style.display='flex'">+ إرسال بلاغ جديد</button>
-            </div>
-            <div class="table-responsive"><table id="tbl-tickets"><thead><tr><th>رقم</th><th>العهدة</th><th>الوصف</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
+        <!-- Branches -->
+        <div id="tab-branches" class="tab">
+            <h3>الفروع</h3>
+            <input type="text" id="branch-name" class="input" placeholder="اسم الفرع">
+            <button class="btn" onclick="addBranch()">إضافة فرع</button>
+            <table id="tbl-branches"><thead><tr><th>ID</th><th>الاسم</th></tr></thead><tbody></tbody></table>
         </div>
 
-        <div id="tab-assets" class="content-box">
-            <div class="box-header"><span class="box-title">عهد الفرع</span></div>
-            <div class="table-responsive"><table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>النوع</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
+        <!-- Assets -->
+        <div id="tab-assets" class="tab">
+            <h3>العهد</h3>
+            <input type="text" id="a-code" class="input" placeholder="كود العهدة">
+            <input type="text" id="a-name" class="input" placeholder="اسم العهدة">
+            <select id="a-branch" class="input"></select>
+            <button class="btn" onclick="addAsset()">إضافة عهدة</button>
+            <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الفرع</th><th>الحالة</th></tr></thead><tbody></tbody></table>
         </div>
-    </div>
 
-    <div id="ticket-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>إرسال بلاغ جديد</h3><button class="modal-close" onclick="document.getElementById('ticket-modal').style.display='none'">&times;</button></div>
-            <form id="ticket-form">
-                <div class="form-group">
-                    <label class="form-label">العهدة المعطلة</label>
-                    <select id="t-asset" class="form-control" required></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">وصف العطل</label>
-                    <textarea id="t-desc" class="form-control" rows="3" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-brand" style="width:100%;">إرسال</button>
-            </form>
+        <!-- Users -->
+        <div id="tab-users" class="tab">
+            <h3>المستخدمين</h3>
+            <input type="text" id="u-name" class="input" placeholder="اسم المستخدم">
+            <input type="text" id="u-pass" class="input" placeholder="كلمة المرور">
+            <select id="u-role" class="input">
+                <option value="branch_manager">مدير فرع</option>
+                <option value="maintenance_manager">مدير صيانة</option>
+                <option value="admin">أدمن</option>
+            </select>
+            <select id="u-branch" class="input"></select>
+            <button class="btn" onclick="addUser()">إضافة مستخدم</button>
+            <table id="tbl-users"><thead><tr><th>الاسم</th><th>الصلاحية</th><th>الفرع</th><th>حذف</th></tr></thead><tbody></tbody></table>
         </div>
     </div>
 
     <script type="module">
         import { supabase } from './js/supabase.js'
         const user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'branch_manager') window.location.href = 'index.html';
+        if(!user) window.location.href = 'index.html';
 
-        document.getElementById('user-info').innerText = `👤 ${user.username}`;
-
-        async function loadSettings() {
-            const { data } = await supabase.from('settings').select('*').eq('id', 1).single();
-            if(data) {
-                document.documentElement.style.setProperty('--brand', data.primary_color);
-                document.getElementById('company-name').innerText = data.company_name;
-                document.getElementById('logo').src = data.logo_url;
-            }
-        }
-        loadSettings();
+        document.getElementById('user-info').innerText = `مرحباً، ${user.username} (${user.role})`;
 
         window.logout = () => { localStorage.removeItem('user'); window.location.href = 'index.html'; }
         window.showTab = (id) => {
-            document.querySelectorAll('.content-box').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
-            document.getElementById('title').innerText = id === 'tickets' ? 'بلاغات الفرع' : 'عهد الفرع';
         }
 
-        // جلب العهد والتأكد إن الـ branch_id متطابق
-        async function loadAssets() {
-            const { data, error } = await supabase.from('assets').select('*').eq('branch_id', user.branch_id);
+        async function loadData() {
+            // تحميل الفروع
+            const { data: branches } = await supabase.from('branches').select('*');
+            const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
+            const selB = document.getElementById('a-branch');
+            const selU = document.getElementById('u-branch');
+            selB.innerHTML = ''; selU.innerHTML = '';
             
-            const tbody = document.querySelector('#tbl-assets tbody'); 
-            const select = document.getElementById('t-asset');
-            tbody.innerHTML = ''; select.innerHTML = '<option value="">اختر العهدة...</option>';
+            branches?.forEach(b => {
+                tbodyB.innerHTML += `<tr><td>${b.id}</td><td>${b.name}</td></tr>`;
+                selB.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                selU.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+            });
 
-            if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#6B7280;">لا توجد عهد مسجلة لهذا الفرع.</td></tr>';
-                return;
-            }
+            // تحميل العهد
+            const { data: assets } = await supabase.from('assets').select('*, branches(name)');
+            const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
+            assets?.forEach(a => {
+                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name || '-'}</td><td>${a.status}</td></tr>`;
+            });
 
-            data.forEach(a => {
-                const status = a.status === 'working' ? '<span class="badge bg-success">شغال</span>' : '<span class="badge bg-danger">عطلان</span>';
-                tbody.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.type || '-'}</td><td>${status}</td></tr>`;
-                select.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`;
+            // تحميل المستخدمين
+            const { data: users } = await supabase.from('users').select('*, branches(name)');
+            const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
+            users?.forEach(u => {
+                tbodyU.innerHTML += `<tr><td>${u.username}</td><td>${u.role}</td><td>${u.branches?.name || 'كل الفروع'}</td>
+                <td><button onclick="delUser(${u.id})" style="color:red; border:none; background:none; cursor:pointer;">حذف</button></td></tr>`;
             });
         }
-        loadAssets();
+        loadData();
 
-        async function loadTickets() {
-            const { data } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', user.branch_id).order('id', {ascending:false});
-            const tbody = document.querySelector('#tbl-tickets tbody'); tbody.innerHTML = '';
-            
-            if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#6B7280;">لا توجد بلاغات.</td></tr>';
-                return;
+        window.addBranch = async () => {
+            const name = document.getElementById('branch-name').value;
+            if(name) { await supabase.from('branches').insert([{ name }]); document.getElementById('branch-name').value = ''; loadData(); }
+        };
+
+        window.addAsset = async () => {
+            const code = document.getElementById('a-code').value;
+            const name = document.getElementById('a-name').value;
+            const branch_id = document.getElementById('a-branch').value;
+            if(code && name) { await supabase.from('assets').insert([{ code, name, branch_id }]); loadData(); }
+        };
+
+        window.addUser = async () => {
+            const username = document.getElementById('u-name').value;
+            const password = document.getElementById('u-pass').value;
+            const role = document.getElementById('u-role').value;
+            const branch_id = role === 'branch_manager' ? document.getElementById('u-branch').value : null;
+            if(username && password) {
+                await supabase.from('users').insert([{ username, password, role, branch_id }]);
+                loadData();
             }
-            
-            data.forEach(t => {
-                let badge = t.status === 'open' ? 'bg-warning' : (t.status === 'closed' ? 'bg-gray' : 'bg-warning');
-                let text = t.status === 'open' ? 'مفتوح' : (t.status === 'closed' ? 'مغلق' : 'جاري العمل');
-                tbody.innerHTML += `<tr><td>#${t.id}</td><td>${t.assets?.name}</td><td>${t.description}</td><td><span class="badge ${badge}">${text}</span></td></tr>`;
-            });
-        }
-        loadTickets();
+        };
 
-        document.getElementById('ticket-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const asset_id = document.getElementById('t-asset').value;
-            const description = document.getElementById('t-desc').value;
-
-            const { error } = await supabase.from('tickets').insert([{
-                asset_id, branch_id: user.branch_id, description, created_by: user.id
-            }]);
-
-            if(error) alert('خطأ: ' + error.message);
-            else {
-                await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
-                document.getElementById('ticket-modal').style.display = 'none';
-                document.getElementById('ticket-form').reset();
-                loadTickets(); loadAssets();
-            }
+        window.delUser = async (id) => {
+            if(confirm('تأكيد الحذف؟')) { await supabase.from('users').delete().eq('id', id); loadData(); }
         };
     </script>
 </body>
-</html>
+</html>s
