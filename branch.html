@@ -43,6 +43,7 @@
         .bg-red { background: var(--glpi-danger); }
         .bg-orange { background: #F39C12; }
         .bg-blue { background: #3498DB; }
+        .bg-purple { background: #9b59b6; }
     </style>
 </head>
 <body>
@@ -93,19 +94,22 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <table id="tbl-tickets"><thead><tr><th>#</th><th>التصنيف</th><th>الأولوية</th><th>الوصف</th><th>الأصل</th><th>الحالة</th><th>الصورة</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الوصف</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <!-- (نفس كود الأصول والعهد القديم) -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> أصول الفرع</span></div>
-                <div class="table-container"><table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
+                <div class="table-container">
+                    <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table>
+                </div>
             </div>
 
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> العهد المرسلة من الصيانة</span></div>
-                <div class="table-container"><table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table></div>
+                <div class="table-container">
+                    <table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
+                </div>
             </div>
         </div>
     </div>
@@ -115,29 +119,32 @@
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
+        
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
             if(!user) { window.location.href = 'index.html'; return; }
+            
             const { data } = await supabase.from('profiles').select('*, branches(name)').eq('id', user.id).single();
             userProfile = data;
-            if(userProfile.role !== 'branch') { window.location.href = 'index.html'; return; }
+
+            if(userProfile?.role !== 'branch') {
+                window.location.href = 'index.html'; return;
+            }
             document.getElementById('header-username').innerText = userProfile.full_name;
             loadData();
         }
         init();
 
-        window.logout = async () => { await supabase.auth.signOut(); window.location.href = 'index.html'; }
+        window.logout = async () => { 
+            await supabase.auth.signOut();
+            window.location.href = 'index.html'; 
+        }
+
         window.showTab = (id, btn) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
-        }
-
-        function getPriorityBadge(p) {
-            if(p === 'urgent') return '<span class="badge bg-red">طارئة</span>';
-            if(p === 'high') return '<span class="badge bg-orange">مهمة</span>';
-            return '<span class="badge" style="background:#95A5A6;">عادية</span>';
         }
 
         async function loadData() {
@@ -152,11 +159,18 @@
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', userProfile.branch_id).order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
-                const imgHtml = t.image_url ? `<a href="${t.image_url}" target="_blank"><i class="fas fa-image" style="color:var(--glpi-accent); font-size:18px;"></i></a>` : '-';
                 let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
+                                 t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيدك</span>' :
                                  t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
                                  '<span class="badge bg-blue">قيد المعالجة</span>';
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.category || '-'}</td><td>${getPriorityBadge(t.priority)}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${imgHtml}</td></tr>`;
+                
+                let actions = '-';
+                if(t.status === 'pending_approval') {
+                    actions = `<button class="btn btn-success" style="padding:4px 8px; margin-left:5px;" onclick="approveRepair(${t.id}, ${t.asset_id})">تأكيد الإصلاح</button>
+                               <button class="btn" style="background:var(--glpi-danger); color:white; padding:4px 8px;" onclick="rejectRepair(${t.id})">رفض</button>`;
+                }
+
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${actions}</td></tr>`;
             });
 
             const { data: custody } = await supabase.from('custody_transfers').select('*').eq('branch_id', userProfile.branch_id).order('id', {ascending:false});
@@ -206,6 +220,22 @@
             loadData();
             alert('تم إرسال البلاغ بنجاح');
         };
+
+        window.approveRepair = async (ticketId, assetId) => {
+            if(!confirm('هل تأكدت من إصلاح العطل؟ سيتم إغلاق التذكرة نهائياً.')) return;
+            await supabase.from('tickets').update({ status: 'closed' }).eq('id', ticketId);
+            await supabase.from('assets').update({ status: 'working' }).eq('id', assetId);
+            loadData();
+            alert('تم تأكيد الإصلاح وإغلاق التذكرة.');
+        }
+
+        window.rejectRepair = async (ticketId) => {
+            const reason = prompt('اكتب سبب رفض الإصلاح (عشان المسؤول يعرف يعمل إيه):');
+            if(reason === null) return; // لو داس Cancel
+            await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع: ' + reason }).eq('id', ticketId);
+            loadData();
+            alert('تم رفض الإصلاح وإعادة فتح التذكرة للمسؤول.');
+        }
 
         window.respondCustody = async (id, status) => {
             if(!confirm(`هل أنت متأكد من ${status === 'approved' ? 'الموافقة' : 'الرفض'}؟`)) return;
