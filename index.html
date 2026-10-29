@@ -57,9 +57,10 @@
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
       const role = profile?.role;
       
-      if (role === 'admin') window.location.href = 'admin.html';
-      else if (role === 'maintenance') window.location.href = 'maintenance.html';
-      else window.location.href = 'branch.html';
+      // استخدمنا replace عشان نمسح أي رابط قديم في المتصفح
+      if (role === 'admin') window.location.replace('admin.html');
+      else if (role === 'maintenance') window.location.replace('maintenance.html');
+      else window.location.replace('branch.html');
     });
   </script>
 </body>
