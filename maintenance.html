@@ -55,15 +55,30 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
 
-        /* تصميم الفروع الجديد (كروت) */
+        /* تصميم الفروع الجديد */
         .branches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .branch-card { background: white; border: 1px solid var(--glpi-border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .branch-card:hover { border-color: var(--glpi-accent); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .branch-card i { font-size: 30px; color: var(--glpi-accent); margin-bottom: 10px; }
         .branch-card h3 { font-size: 16px; color: var(--glpi-navbar); }
+
+        /* صفحة تفاصيل الأصل والطباعة */
+        .asset-details-page { display: none; }
+        .back-btn { margin-bottom: 15px; background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; }
         
-        .asset-list-modal { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        .asset-item-modal { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .print-filters { background: white; padding: 15px; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+        
+        /* تنسيق الطباعة */
+        @media print {
+            .sidebar, .top-header, .nav-menu, .back-btn, .print-filters, .btn, .actions-bar { display: none !important; }
+            body { display: block; height: auto; overflow: visible; background: white; }
+            .content-body { padding: 0; overflow: visible; }
+            .print-area { width: 100%; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: right; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
@@ -84,7 +99,7 @@
         </div>
 
         <div class="content-body">
-            <!-- التذاكر -->
+            <!-- 1. التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> لوحة التحكم</span></div>
                 <div class="stats-grid">
@@ -97,15 +112,55 @@
                 </div>
             </div>
 
-            <!-- الفروع (جديد) -->
+            <!-- 2. الفروع (الجزء اللي اتعدل) -->
             <div id="tab-branches" class="tab">
-                <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
-                <div class="branches-grid" id="branches-grid-container">
-                    <!-- سيتم تعبئتها -->
+                <!-- شاشة عرض الفروع -->
+                <div id="branches-view">
+                    <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
+                    <div class="branches-grid" id="branches-grid-container"></div>
+                </div>
+
+                <!-- شاشة عرض أصول الفرع -->
+                <div id="branch-assets-view" style="display: none;">
+                    <button class="back-btn" onclick="backToBranches()"><i class="fas fa-arrow-right"></i> رجوع للفروع</button>
+                    <div class="page-title"><span id="branch-title-text">أصول الفرع</span></div>
+                    <div class="branches-grid" id="branch-assets-container"></div>
+                </div>
+
+                <!-- شاشة سجل الأصل (الطباعة) -->
+                <div id="asset-history-view" class="asset-details-page">
+                    <button class="back-btn" onclick="backToBranchAssets()"><i class="fas fa-arrow-right"></i> رجوع لأصول الفرع</button>
+                    <div class="page-title"><span id="history-title-text">سجل الأصل</span></div>
+                    
+                    <div class="print-header">
+                        <h2>شركة بن الغرباوي</h2>
+                        <p>تقرير سجل أصل - <span id="print-date-range"></span></p>
+                    </div>
+
+                    <!-- الفلتر والطباعة -->
+                    <div class="print-filters">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">من تاريخ</label>
+                            <input type="date" id="filter-from" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label">إلى تاريخ</label>
+                            <input type="date" id="filter-to" class="form-control">
+                        </div>
+                        <button class="btn btn-primary" onclick="filterHistory()">تصفية</button>
+                        <button class="btn btn-success" onclick="window.print()"><i class="fas fa-print"></i> طباعة التقرير</button>
+                    </div>
+
+                    <div class="table-container print-area">
+                        <table id="tbl-asset-history">
+                            <thead><tr><th>التاريخ</th><th>الحدث</th><th>التفاصيل</th><th>بواسطة</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- الأصول -->
+            <!-- 3. كل الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -125,7 +180,7 @@
                 </div>
             </div>
 
-            <!-- إرسال عهدة -->
+            <!-- 4. إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
@@ -147,18 +202,7 @@
         </div>
     </div>
 
-    <!-- Modal لسجل الفرع -->
-    <div id="branch-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="branch-modal-title">أصول الفرع</h3>
-                <button class="modal-close" onclick="document.getElementById('branch-modal').style.display='none'">&times;</button>
-            </div>
-            <div id="branch-assets-container" class="asset-list-modal"></div>
-        </div>
-    </div>
-
-    <!-- Modal لإغلاق التذكرة -->
+    <!-- مودال إغلاق التذكرة -->
     <div id="close-modal" class="modal">
         <div class="modal-content" style="width:500px;">
             <div class="modal-header">
@@ -186,6 +230,7 @@
         let currentAssetId = null;
         let allBranches = [];
         let allAssets = [];
+        let currentHistoryData = []; // لتخزين السجل عشان الفلترة
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -261,34 +306,145 @@
                 tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${c.branches?.name}</td><td>${statusHtml}</td></tr>`;
             });
 
-            // الفروع (كروت)
+            // بناء كروت الفروع
             const grid = document.getElementById('branches-grid-container');
             grid.innerHTML = allBranches.map(b => `
-                <div class="branch-card" onclick="openBranchDetails(${b.id}, '${b.name}')">
+                <div class="branch-card" onclick="openBranchAssets(${b.id}, '${b.name}')">
                     <i class="fas fa-store"></i>
                     <h3>${b.name}</h3>
                 </div>
             `).join('');
         }
 
-        window.openBranchDetails = (branchId, branchName) => {
-            document.getElementById('branch-modal-title').innerText = `أصول ${branchName}`;
+        // --- التنقل بين الفروع والأصول والسجل ---
+        window.openBranchAssets = (branchId, branchName) => {
+            document.getElementById('branches-view').style.display = 'none';
+            document.getElementById('branch-assets-view').style.display = 'block';
+            document.getElementById('branch-title-text').innerText = `أصول ${branchName}`;
+
             const container = document.getElementById('branch-assets-container');
             const branchAssets = allAssets.filter(a => a.branch_id === branchId);
 
             if(branchAssets.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">لا توجد أصول مسجلة لهذا الفرع.</p>';
+                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">لا توجد أصول لهذا الفرع.</p>';
             } else {
                 container.innerHTML = branchAssets.map(a => `
-                    <div class="asset-item-modal">
-                        <div><strong>${a.name}</strong> (${a.code})</div>
-                        <div>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</div>
+                    <div class="branch-card" onclick="openAssetHistory(${a.id}, '${a.name}', ${a.branch_id})">
+                        <i class="fas fa-desktop"></i>
+                        <h3>${a.name}</h3>
+                        <p style="color:#777; font-size:12px; margin-top:5px;">${a.code}</p>
+                        <div style="margin-top:10px;">${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</div>
                     </div>
                 `).join('');
             }
-            document.getElementById('branch-modal').style.display = 'flex';
         }
 
+        window.backToBranches = () => {
+            document.getElementById('branch-assets-view').style.display = 'none';
+            document.getElementById('asset-history-view').style.display = 'none';
+            document.getElementById('branches-view').style.display = 'block';
+        }
+
+        window.backToBranchAssets = () => {
+            document.getElementById('asset-history-view').style.display = 'none';
+            document.getElementById('branch-assets-view').style.display = 'block';
+        }
+
+        window.openAssetHistory = async (assetId, assetName, branchId) => {
+            document.getElementById('branch-assets-view').style.display = 'none';
+            document.getElementById('asset-history-view').style.display = 'block';
+            document.getElementById('history-title-text').innerText = `سجل الأصل: ${assetName}`;
+            
+            // تصفير الفلاتر
+            document.getElementById('filter-from').value = '';
+            document.getElementById('filter-to').value = '';
+            document.getElementById('print-date-range').innerText = 'كل الفترات';
+
+            const tbody = document.querySelector('#tbl-asset-history tbody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>';
+
+            // جلب التذاكر الخاصة بالأصل ده
+            const { data: tickets } = await supabase.from('tickets').select('*').eq('asset_id', assetId).order('created_at');
+            const asset = allAssets.find(a => a.id === assetId);
+
+            // تجهيز البيانات للفلترة
+            currentHistoryData = [];
+            
+            // إضافة حدث "تمت الإضافة"
+            if(asset) {
+                currentHistoryData.push({
+                    date: new Date(asset.created_at),
+                    event: 'تمت إضافة الأصل',
+                    details: `تم إضافة ${asset.name} بكود ${asset.code}`,
+                    by: 'النظام',
+                    color: 'var(--glpi-success)'
+                });
+            }
+
+            // إضافة التذاكر
+            tickets?.forEach(t => {
+                currentHistoryData.push({
+                    date: new Date(t.created_at),
+                    event: 'تم فتح بلاغ عطل',
+                    details: `${t.description} (${t.category || 'بدون تصنيف'})`,
+                    by: 'الفرع',
+                    color: 'var(--glpi-danger)'
+                });
+                if(t.status === 'closed' && t.resolution_notes) {
+                    currentHistoryData.push({
+                        date: t.closed_at ? new Date(t.closed_at) : new Date(),
+                        event: 'تم الإصلاح',
+                        details: t.resolution_notes,
+                        by: t.maintenance_name || 'مسئول الصيانة',
+                        color: 'var(--glpi-success)'
+                    });
+                }
+            });
+
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.querySelector('#tbl-asset-history tbody');
+            const fromDate = document.getElementById('filter-from').value ? new Date(document.getElementById('filter-from').value) : null;
+            const toDate = document.getElementById('filter-to').value ? new Date(document.getElementById('filter-to').value) : null;
+            
+            // تعديل وقت "إلى تاريخ" ليشمل اليوم بالكامل
+            if(toDate) toDate.setHours(23, 59, 59, 999);
+
+            const filtered = currentHistoryData.filter(item => {
+                if(fromDate && item.date < fromDate) return false;
+                if(toDate && item.date > toDate) return false;
+                return true;
+            }).sort((a,b) => a.date - b.date);
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا يوجد سجل في هذه الفترة.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr>
+                    <td>${item.date.toLocaleString('ar-EG')}</td>
+                    <td style="color:${item.color}; font-weight:bold;">${item.event}</td>
+                    <td>${item.details}</td>
+                    <td>${item.by}</td>
+                </tr>
+            `).join('');
+        }
+
+        window.filterHistory = () => {
+            const from = document.getElementById('filter-from').value;
+            const to = document.getElementById('filter-to').value;
+            if(from || to) {
+                document.getElementById('print-date-range').innerText = `من ${from || 'البداية'} إلى ${to || 'النهاية'}`;
+            } else {
+                document.getElementById('print-date-range').innerText = 'كل الفترات';
+            }
+            renderHistoryTable();
+        }
+
+        // --- الوظائف القديمة ---
         window.openCloseModal = (ticketId, assetId) => {
             currentTicketId = ticketId;
             currentAssetId = assetId;
@@ -313,7 +469,7 @@
             }).eq('id', currentTicketId);
             
             document.getElementById('close-modal').style.display = 'none';
-            loadData(); // تحديث تلقائي
+            loadData();
             alert('تم إرسال الإصلاح للفرع لتأكيده.');
         }
 
@@ -325,7 +481,7 @@
             if(!name || !code) return alert('اكتب الاسم والكود');
             await supabase.from('assets').insert([{ name, code, branch_id, category, status: 'working' }]);
             document.getElementById('a-name').value = ''; document.getElementById('a-code').value = ''; document.getElementById('a-cat').value = '';
-            loadData(); // تحديث تلقائي
+            loadData();
             alert('تم إضافة الأصل');
         };
 
@@ -337,7 +493,7 @@
             if(!name || !code) return alert('اكتب الاسم والكود');
             await supabase.from('custody_transfers').insert([{ asset_name: name, asset_code: code, branch_id, category, created_by: userProfile.id }]);
             document.getElementById('c-name').value = ''; document.getElementById('c-code').value = ''; document.getElementById('c-cat').value = '';
-            loadData(); // تحديث تلقائي
+            loadData();
             alert('تم إرسال العهدة للفرع');
         };
     </script>
