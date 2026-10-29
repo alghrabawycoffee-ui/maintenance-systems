@@ -202,16 +202,27 @@
         window.respondCustody = async (id, status) => {
             if(!confirm(`هل أنت متأكد من ${status === 'approved' ? 'الموافقة' : 'الرفض'}؟`)) return;
             
-            const { data: c } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
+            const { data: c, error: cErr } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
+            if(cErr || !c) {
+                alert('حدث خطأ في قراءة بيانات العهدة');
+                return;
+            }
             
-            await supabase.from('custody_transfers').update({ 
+            // تحديث حالة العهدة
+            const { error: updateErr } = await supabase.from('custody_transfers').update({ 
                 status, 
                 responded_by: userProfile.id, 
                 responded_at: new Date().toISOString() 
             }).eq('id', id);
 
+            if(updateErr) {
+                alert('خطأ في تحديث العهدة: ' + updateErr.message);
+                return;
+            }
+
             if(status === 'approved') {
-                const { data: newAsset } = await supabase.from('assets').insert([{
+                // إضافة الأصل للجدول بعد الموافقة
+                const { data: newAsset, error: assetErr } = await supabase.from('assets').insert([{
                     code: c.asset_code,
                     name: c.asset_name,
                     category: c.category,
@@ -219,7 +230,11 @@
                     status: 'working'
                 }]).select().single();
                 
-                await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
+                if(assetErr) {
+                    alert('خطأ في إضافة الأصل: ' + assetErr.message);
+                } else if (newAsset) {
+                    await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
+                }
             }
             
             loadData();
