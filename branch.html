@@ -56,7 +56,6 @@
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> تذاكر الفرع</button>
             <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> أصول الفرع</button>
-            <button class="nav-btn" onclick="showTab('asset-history', this)"><i class="fas fa-history"></i> سجل الأصول</button>
             <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> العهد الجديدة</button>
         </div>
         <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
@@ -68,6 +67,7 @@
         </div>
 
         <div class="content-body">
+            <!-- التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> تذاكر الفرع</span></div>
                 <div class="table-container">
@@ -92,7 +92,6 @@
                                     <option value="urgent">طارئة جداً</option>
                                 </select>
                             </div>
-                            <!-- الصورة بقت إجبارية -->
                             <div class="form-group"><label class="form-label">صورة للمشكلة (إجباري)</label><input type="file" id="t-image" class="form-control" accept="image/*" required></div>
                         </div>
                         <div class="form-group"><label class="form-label">وصف المشكلة (إجباري)</label><textarea id="t-desc" class="form-control" rows="3" required></textarea></div>
@@ -104,37 +103,15 @@
                 </div>
             </div>
 
+            <!-- الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> أصول الفرع</span></div>
                 <div class="table-container">
-                    <div class="table-header">
-                        <span>قائمة الأصول</span>
-                        <button class="btn btn-success" onclick="openAssetModal()">إضافة أصل جديد (مثال: حنفية)</button>
-                    </div>
                     <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th><th>تاريخ الإضافة</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <div id="tab-asset-history" class="tab">
-                <div class="page-title"><span><i class="fas fa-history"></i> سجل الأصول (التاريخ الكامل)</span></div>
-                <div class="table-container">
-                    <div class="table-header"><span>اختر الأصل لرؤية تاريخه</span></div>
-                    <div style="padding:20px;">
-                        <select id="history-asset-select" class="form-control" onchange="loadAssetHistory()">
-                            <option value="">-- اختر أصلاً --</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="asset-history-display" style="display: none;">
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>التاريخ</th><th>الحدث</th><th>التفاصيل</th></tr></thead>
-                            <tbody id="tbl-history-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
+            <!-- العهد -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> العهد المرسلة من الصيانة</span></div>
                 <div class="table-container">
@@ -144,29 +121,7 @@
         </div>
     </div>
 
-    <div id="asset-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>إضافة أصل جديد للفرع</h3>
-                <button class="modal-close" onclick="document.getElementById('asset-modal').style.display='none'">&times;</button>
-            </div>
-            <div class="form-group">
-                <label class="form-label">اسم الأصل</label>
-                <input type="text" id="new-asset-name" class="form-control" placeholder="مثال: حنفية الحمام">
-            </div>
-            <div class="form-group">
-                <label class="form-label">كود الأصل</label>
-                <input type="text" id="new-asset-code" class="form-control" placeholder="مثال: PL-01">
-            </div>
-            <div class="form-group">
-                <label class="form-label">التصنيف</label>
-                <input type="text" id="new-asset-cat" class="form-control" placeholder="مثال: سباكة">
-            </div>
-            <button class="btn btn-primary" onclick="saveNewAsset()" style="width:100%;">إضافة الأصل</button>
-        </div>
-    </div>
-
-    <!-- مودال التأكيد (فيه خانة لاسم مدير الفرع وملاحظاته) -->
+    <!-- مودال التأكيد -->
     <div id="approve-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -175,7 +130,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">اسمك (مدير الفرع) - إجباري:</label>
-                <input type="text" id="branch-manager-name" class="form-control" placeholder="اكتب اسمك الثلاثي هنا...">
+                <input type="text" id="branch-manager-name" class="form-control" placeholder="اكتب اسمك هنا...">
             </div>
             <div class="form-group">
                 <label class="form-label">ملاحظات الفرع - إجباري:</label>
@@ -192,7 +147,6 @@
         let userProfile = null;
         let currentApproveTicketId = null;
         let currentApproveAssetId = null;
-        let globalAssets = [];
         
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -222,23 +176,16 @@
         }
 
         async function loadData() {
+            // الأصول
             const { data: assets } = await supabase.from('assets').select('*').eq('branch_id', userProfile.branch_id);
-            globalAssets = assets || [];
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
             const selA = document.getElementById('t-asset'); selA.innerHTML = '';
-            const historySel = document.getElementById('history-asset-select'); historySel.innerHTML = '<option value="">-- اختر أصلاً --</option>';
-            
             assets?.forEach(a => {
-                tbodyA.innerHTML += `<tr>
-                    <td>${a.code}</td>
-                    <td>${a.name}</td>
-                    <td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td>
-                    <td>${new Date(a.created_at).toLocaleDateString('ar-EG')}</td>
-                </tr>`;
+                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td><td>${new Date(a.created_at).toLocaleDateString('ar-EG')}</td></tr>`;
                 selA.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`;
-                historySel.innerHTML += `<option value="${a.id}">${a.name} (${a.code})</option>`;
             });
 
+            // التذاكر
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name)').eq('branch_id', userProfile.branch_id).order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
@@ -256,6 +203,7 @@
                 tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${actions}</td></tr>`;
             });
 
+            // العهد
             const { data: custody } = await supabase.from('custody_transfers').select('*').eq('branch_id', userProfile.branch_id).order('id', {ascending:false});
             const tbodyC = document.querySelector('#tbl-custody tbody'); tbodyC.innerHTML = '';
             custody?.forEach(c => {
@@ -271,72 +219,6 @@
             });
         }
 
-        window.openAssetModal = () => {
-            document.getElementById('new-asset-name').value = '';
-            document.getElementById('new-asset-code').value = '';
-            document.getElementById('new-asset-cat').value = '';
-            document.getElementById('asset-modal').style.display = 'flex';
-        }
-
-        window.saveNewAsset = async () => {
-            const name = document.getElementById('new-asset-name').value.trim();
-            const code = document.getElementById('new-asset-code').value.trim();
-            const cat = document.getElementById('new-asset-cat').value.trim();
-            if(!name || !code) return alert('اكتب الاسم والكود');
-
-            await supabase.from('assets').insert([{ 
-                name, code, category: cat, branch_id: userProfile.branch_id, status: 'working' 
-            }]);
-            document.getElementById('asset-modal').style.display = 'none';
-            loadData();
-            alert('تم إضافة الأصل بنجاح.');
-        }
-
-        window.loadAssetHistory = async () => {
-            const assetId = document.getElementById('history-asset-select').value;
-            if(!assetId) {
-                document.getElementById('asset-history-display').style.display = 'none';
-                return;
-            }
-
-            document.getElementById('asset-history-display').style.display = 'block';
-            const tbody = document.getElementById('tbl-history-body');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">جاري التحميل...</td></tr>';
-
-            const { data: tickets } = await supabase.from('tickets').select('*').eq('asset_id', assetId).order('created_at');
-
-            let rows = '';
-            const asset = globalAssets.find(a => a.id == assetId);
-            if(asset) {
-                rows += `<tr>
-                    <td>${new Date(asset.created_at).toLocaleString('ar-EG')}</td>
-                    <td style="color:var(--glpi-success); font-weight:bold;">تمت إضافة الأصل</td>
-                    <td>تم إضافة ${asset.name} بكود ${asset.code}</td>
-                </tr>`;
-            }
-
-            tickets?.forEach(t => {
-                rows += `<tr>
-                    <td>${new Date(t.created_at).toLocaleString('ar-EG')}</td>
-                    <td style="color:var(--glpi-danger); font-weight:bold;">تم فتح بلاغ عطل</td>
-                    <td>${t.description} (${t.category || 'بدون تصنيف'})</td>
-                </tr>`;
-                if(t.status === 'closed') {
-                    rows += `<tr>
-                        <td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td>
-                        <td style="color:var(--glpi-success); font-weight:bold;">تم الإصلاح</td>
-                        <td>${t.resolution_notes || 'تم الإصلاح'}</td>
-                    </tr>`;
-                }
-            });
-
-            if(rows === '') {
-                rows = '<tr><td colspan="3" style="text-align:center;">لا يوجد سجل لهذا الأصل بعد.</td></tr>';
-            }
-
-            tbody.innerHTML = rows;
-        }
-
         window.addTicket = async () => {
             const asset_id = document.getElementById('t-asset').value;
             const category = document.getElementById('t-cat').value;
@@ -344,7 +226,6 @@
             const desc = document.getElementById('t-desc').value;
             const file = document.getElementById('t-image').files[0];
             
-            // إجبار المستخدم على رفع صورة
             if(!asset_id || !desc) return alert('اختر الأصل واكتب الوصف');
             if(!file) return alert('يجب إرفاق صورة للمشكلة (إجباري)');
 
@@ -372,7 +253,7 @@
             document.getElementById('t-desc').value = '';
             document.getElementById('t-image').value = '';
             btn.innerText = 'إرسال البلاغ'; btn.disabled = false;
-            loadData();
+            loadData(); // تحديث تلقائي
             alert('تم إرسال البلاغ بنجاح');
         };
 
@@ -388,29 +269,28 @@
             const managerName = document.getElementById('branch-manager-name').value.trim();
             const notes = document.getElementById('branch-notes-input').value.trim();
             
-            // إجبار مدير الفرع يكتب اسمه وملاحظاته
             if(!managerName) return alert('يجب كتابة اسمك (مدير الفرع).');
             if(!notes) return alert('يجب كتابة ملاحظات الفرع.');
 
             await supabase.from('tickets').update({ 
                 status: 'closed',
                 branch_notes: notes,
-                branch_manager_name: managerName // حفظ اسم المدير
+                branch_manager_name: managerName
             }).eq('id', currentApproveTicketId);
             
             await supabase.from('assets').update({ status: 'working' }).eq('id', currentApproveAssetId);
             
             document.getElementById('approve-modal').style.display = 'none';
-            loadData();
+            loadData(); // تحديث تلقائي
             alert('تم تأكيد الإصلاح وإغلاق التذكرة بنجاح.');
         }
 
         window.rejectRepair = async (ticketId) => {
-            const reason = prompt('اكتب سبب رفض الإصلاح (عشان المسؤول يعرف يعمل إيه):');
+            const reason = prompt('اكتب سبب رفض الإصلاح:');
             if(reason === null) return;
             await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع: ' + reason }).eq('id', ticketId);
-            loadData();
-            alert('تم رفض الإصلاح وإعادة فتح التذكرة للمسؤول.');
+            loadData(); // تحديث تلقائي
+            alert('تم رفض الإصلاح.');
         }
 
         window.respondCustody = async (id, status) => {
@@ -421,7 +301,7 @@
                 const { data: newAsset } = await supabase.from('assets').insert([{ code: c.asset_code, name: c.asset_name, category: c.category, branch_id: userProfile.branch_id, status: 'working' }]).select().single();
                 if(newAsset) await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
             }
-            loadData();
+            loadData(); // تحديث تلقائي
             alert('تم تسجيل الرد بنجاح');
         };
     </script>
