@@ -29,7 +29,7 @@
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; position: relative; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center;}
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
         td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
@@ -50,7 +50,6 @@
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .stat-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--glpi-border); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: var(--glpi-accent); }
-        .stat-card.active-filter { border: 2px solid var(--glpi-accent); background: #F0F8FF; }
         .stat-card h3 { font-size: 14px; color: #7F8C8D; margin-bottom: 5px; }
         .stat-card .num { font-size: 28px; font-weight: 700; }
         .stat-card i { font-size: 40px; }
@@ -69,10 +68,15 @@
         .branch-card:hover { border-color: var(--glpi-accent); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .branch-card i { font-size: 30px; color: var(--glpi-accent); margin-bottom: 10px; }
         .branch-card h3 { font-size: 16px; color: var(--glpi-navbar); }
+        
         .asset-details-page { display: none; }
-        .back-btn { margin-bottom: 15px; background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; transition: 0.2s; }
+        .back-btn { margin-bottom: 15px; background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .back-btn:hover { background: #7f8c8d; }
         .print-filters { background: white; padding: 15px; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+        
+        /* صفحة عرض التذاكر المنفصلة */
+        .tickets-filter-view { display: none; }
+        
         @media print {
             .sidebar, .top-header, .nav-menu, .back-btn, .print-filters, .btn, .refresh-btn, .dashboard-grid, .dashboard-charts { display: none !important; }
             body { display: block; height: auto; overflow: visible; background: white; }
@@ -107,47 +111,61 @@
         <div class="content-body" id="main-content-body">
             <!-- 1. لوحة التحكم -->
             <div id="tab-tickets" class="tab active">
-                <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة التحكم (Dashboard)</span></div>
                 
-                <div class="dashboard-grid">
-                    <div class="stat-card" id="card-open" onclick="filterTickets('open', 'card-open')">
-                        <div><h3>تذاكر مفتوحة</h3><div class="num" style="color:var(--glpi-danger);" id="st-open">0</div></div>
-                        <i class="fas fa-envelope-open" style="color:#ffe6e6;"></i>
+                <!-- شاشة الداشبورد -->
+                <div id="dashboard-view">
+                    <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة التحكم (Dashboard)</span></div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="stat-card" onclick="openTicketsView('open', 'التذاكر المفتوحة')">
+                            <div><h3>تذاكر مفتوحة</h3><div class="num" style="color:var(--glpi-danger);" id="st-open">0</div></div>
+                            <i class="fas fa-envelope-open" style="color:#ffe6e6;"></i>
+                        </div>
+                        <div class="stat-card" onclick="openTicketsView('pending_approval', 'تذاكر بانتظار التأكيد')">
+                            <div><h3>بانتظار تأكيد الفروع</h3><div class="num" style="color:#9b59b6;" id="st-pending">0</div></div>
+                            <i class="fas fa-hourglass-half" style="color:#f3e6fa;"></i>
+                        </div>
+                        <div class="stat-card" onclick="openTicketsView('closed', 'التذاكر المغلقة')">
+                            <div><h3>تذاكر مغلقة</h3><div class="num" style="color:var(--glpi-success);" id="st-closed">0</div></div>
+                            <i class="fas fa-check-circle" style="color:#e6f7ee;"></i>
+                        </div>
                     </div>
-                    <div class="stat-card" id="card-pending" onclick="filterTickets('pending_approval', 'card-pending')">
-                        <div><h3>بانتظار تأكيد الفروع</h3><div class="num" style="color:#9b59b6;" id="st-pending">0</div></div>
-                        <i class="fas fa-hourglass-half" style="color:#f3e6fa;"></i>
-                    </div>
-                    <div class="stat-card" id="card-closed" onclick="filterTickets('closed', 'card-closed')">
-                        <div><h3>تذاكر مغلقة</h3><div class="num" style="color:var(--glpi-success);" id="st-closed">0</div></div>
-                        <i class="fas fa-check-circle" style="color:#e6f7ee;"></i>
-                    </div>
-                </div>
 
-                <div class="dashboard-charts">
-                    <div class="chart-box">
-                        <h3>حالة التذاكر العامة</h3>
-                        <canvas id="ticketsChart" style="max-height: 250px;"></canvas>
+                    <div class="dashboard-charts">
+                        <div class="chart-box">
+                            <h3>حالة التذاكر العامة</h3>
+                            <canvas id="ticketsChart" style="max-height: 250px;"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>أكثر الفروع طلباً للصيانة</h3>
+                            <table style="font-size: 13px;">
+                                <thead><tr><th>الفرع</th><th>عدد التذاكر</th></tr></thead>
+                                <tbody id="top-branches-body"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="chart-box">
-                        <h3>أكثر الفروع طلباً للصيانة</h3>
-                        <table style="font-size: 13px;">
-                            <thead><tr><th>الفرع</th><th>عدد التذاكر</th></tr></thead>
-                            <tbody id="top-branches-body"></tbody>
+
+                    <div class="table-container">
+                        <div class="table-header">أحدث التذاكر (آخر 5)</div>
+                        <table id="tbl-recent-tickets">
+                            <thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div class="table-container" id="tickets-container">
-                    <div class="table-header">
-                        <span id="table-title">أحدث التذاكر</span>
-                        <button class="btn btn-primary" id="show-all-btn" style="display:none;" onclick="filterTickets('all', '')">عرض كل التذاكر</button>
+                <!-- شاشة عرض التذاكر (تظهر عند الضغط على كارت) -->
+                <div id="tickets-list-view" class="tickets-filter-view">
+                    <button class="back-btn" onclick="backToDashboard()"><i class="fas fa-arrow-right"></i> رجوع للوحة التحكم</button>
+                    <div class="page-title"><span id="tickets-view-title">التذاكر</span></div>
+                    <div class="table-container">
+                        <table id="tbl-filtered-tickets">
+                            <thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table id="tbl-tickets">
-                        <thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
                 </div>
+
             </div>
 
             <!-- 2. الفروع -->
@@ -242,7 +260,6 @@
         let currentHistoryData = [];
         let autoRefreshInterval;
         let myChart = null;
-        let currentFilter = 'recent';
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -271,6 +288,7 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
+            backToDashboard(); // عشان لو كان فاتح تذاكر يرجع للداشبورد
         }
 
         window.manualRefresh = () => {
@@ -316,14 +334,6 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } }
-                    },
-                    onClick: (event, elements) => {
-                        if(elements.length > 0) {
-                            const index = elements[0].index;
-                            if(index === 0) filterTickets('open', 'card-open');
-                            else if(index === 1) filterTickets('pending_approval', 'card-pending');
-                            else if(index === 2) filterTickets('closed', 'card-closed');
-                        }
                     }
                 }
             });
@@ -333,7 +343,8 @@
                 <tr><td>${b[0]}</td><td><strong>${b[1]}</strong> تذكرة</td></tr>
             `).join('');
 
-            renderTicketsTable();
+            // عرض أحدث 5 تذاكر في الداشبورد
+            renderTable('tbl-recent-tickets', allTickets.slice(0, 5));
 
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             allAssets = assets || [];
@@ -360,47 +371,36 @@
             `).join('');
         }
 
-        function renderTicketsTable() {
-            const tbodyT = document.querySelector('#tbl-tickets tbody'); 
-            tbodyT.innerHTML = '';
+        // --- دوال عرض صفحة التذاكر المنفصلة ---
+        window.openTicketsView = (status, title) => {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('tickets-list-view').style.display = 'block';
+            document.getElementById('tickets-view-title').innerText = title;
             
-            let filteredTickets = allTickets;
-            let tableTitle = 'أحدث التذاكر';
-            let showAllBtn = false;
+            let filtered = [];
+            if(status === 'open') filtered = allTickets.filter(t => t.status !== 'closed' && t.status !== 'pending_approval');
+            else if(status === 'pending_approval') filtered = allTickets.filter(t => t.status === 'pending_approval');
+            else if(status === 'closed') filtered = allTickets.filter(t => t.status === 'closed');
 
-            if(currentFilter === 'open') {
-                filteredTickets = allTickets.filter(t => t.status !== 'closed' && t.status !== 'pending_approval');
-                tableTitle = 'التذاكر المفتوحة';
-                showAllBtn = true;
-            } else if(currentFilter === 'pending_approval') {
-                filteredTickets = allTickets.filter(t => t.status === 'pending_approval');
-                tableTitle = 'التذاكر بانتظار التأكيد';
-                showAllBtn = true;
-            } else if(currentFilter === 'closed') {
-                filteredTickets = allTickets.filter(t => t.status === 'closed');
-                tableTitle = 'التذاكر المغلقة';
-                showAllBtn = true;
-            } else if(currentFilter === 'recent') {
-                filteredTickets = allTickets.slice(0, 5);
-                tableTitle = 'أحدث التذاكر (آخر 5)';
-                showAllBtn = false;
-            } else if(currentFilter === 'all') {
-                filteredTickets = allTickets;
-                tableTitle = 'كل التذاكر';
-                showAllBtn = false;
-            }
+            renderTable('tbl-filtered-tickets', filtered);
+        }
 
-            document.getElementById('table-title').innerText = tableTitle;
-            document.getElementById('show-all-btn').style.display = showAllBtn ? 'inline-flex' : 'none';
+        window.backToDashboard = () => {
+            document.getElementById('dashboard-view').style.display = 'block';
+            document.getElementById('tickets-list-view').style.display = 'none';
+        }
 
-            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-
-            if(filteredTickets.length === 0) {
-                tbodyT.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد تذاكر في هذا القسم.</td></tr>';
+        // دالة مساعدة لرسم الجدول
+        function renderTable(tableId, tickets) {
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            tbody.innerHTML = '';
+            
+            if(tickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد تذاكر في هذا القسم.</td></tr>';
                 return;
             }
 
-            filteredTickets.forEach(t => {
+            tickets.forEach(t => {
                 let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
                                  t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيد الفرع</span>' :
                                  t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
@@ -411,20 +411,11 @@
                     action += `<button class="btn btn-success" style="margin-right:5px;" onclick="openCloseModal(${t.id}, ${t.asset_id})">إنهاء</button>`;
                 }
 
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
+                tbody.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
             });
         }
 
-        window.filterTickets = (status, cardId) => {
-            currentFilter = status;
-            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-            if(cardId) {
-                const card = document.getElementById(cardId);
-                if(card) card.classList.add('active-filter');
-            }
-            renderTicketsTable();
-        }
-
+        // --- باقي الوظائف ---
         window.openBranchAssets = (branchId, branchName) => {
             document.getElementById('branches-view').style.display = 'none';
             document.getElementById('branch-assets-view').style.display = 'block';
