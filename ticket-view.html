@@ -10,11 +10,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { background: #F4F6F9; padding: 20px; display: flex; justify-content: center; }
         
-        /* ورقة A4 رسمية */
         .report-page { 
             background: white; 
-            width: 210mm; /* عرض A4 */
-            min-height: 297mm; /* طول A4 */
+            width: 210mm;
+            min-height: 297mm;
             padding: 20mm; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
             position: relative;
@@ -22,7 +21,6 @@
             flex-direction: column;
         }
 
-        /* الهيدر */
         .header { 
             display: flex; 
             justify-content: space-between; 
@@ -31,26 +29,15 @@
             padding-bottom: 15px; 
             margin-bottom: 20px;
         }
-        .header-logo img { 
-            height: 70px; 
-            object-fit: contain;
-        }
+        .header-logo img { height: 70px; object-fit: contain; }
         .header-text { text-align: left; }
         .header-text h1 { color: #2C3E50; font-size: 26px; font-weight: 900; margin-bottom: 2px; }
         .header-text p { color: #7F8C8D; font-size: 14px; font-weight: 600; }
         
-        .ticket-badge {
-            background: #2C3E50;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-align: center;
-            min-width: 150px;
-        }
+        .ticket-badge { background: #2C3E50; color: white; padding: 8px 15px; border-radius: 4px; text-align: center; min-width: 150px; }
         .ticket-badge span { display: block; font-size: 12px; opacity: 0.8; }
         .ticket-badge strong { font-size: 20px; }
 
-        /* الجدول الرئيسي */
         table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; }
         th, td { padding: 10px 12px; border: 1px solid #D2D6DE; text-align: right; }
         th { background: #F4F6F9; color: #2C3E50; font-weight: 700; width: 25%; }
@@ -59,28 +46,9 @@
         .badge { padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 700; color: white; }
         .bg-green { background: #00A65A; } .bg-red { background: #DD4B39; } .bg-orange { background: #F39C12; } .bg-purple { background: #9b59b6; }
 
-        /* الأقسام */
-        .section-title {
-            background: #2C3E50;
-            color: white;
-            padding: 8px 15px;
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-        .section-content {
-            border: 1px solid #D2D6DE;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #333;
-            min-height: 80px;
-        }
+        .section-title { background: #2C3E50; color: white; padding: 8px 15px; font-weight: 700; font-size: 15px; margin-bottom: 10px; border-radius: 4px; }
+        .section-content { border: 1px solid #D2D6DE; padding: 15px; border-radius: 4px; margin-bottom: 25px; font-size: 14px; line-height: 1.6; color: #333; min-height: 80px; }
 
-        /* سجل الإجراءات */
         .timeline-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .timeline-table th { background: #ECF0F1; color: #2C3E50; padding: 8px; border: 1px solid #D2D6DE; }
         .timeline-table td { padding: 8px; border: 1px solid #D2D6DE; color: #555; }
@@ -88,46 +56,16 @@
         .timeline-table .action-pending { color: #F39C12; font-weight: 700; }
 
         /* التوقيعات */
-        .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto; /* يخليها في آخر الصفحة */
-            padding-top: 40px;
-        }
-        .sig-box {
-            text-align: center;
-            width: 40%;
-        }
-        .sig-line {
-            border-top: 2px dashed #777;
-            margin-bottom: 10px;
-        }
-        .sig-box p { font-weight: 700; color: #2C3E50; font-size: 14px; }
-        .sig-box span { font-size: 12px; color: #777; }
+        .signatures { display: flex; justify-content: space-between; margin-top: auto; padding-top: 40px; }
+        .sig-box { text-align: center; width: 40%; }
+        .sig-line { border-top: 2px dashed #777; margin-bottom: 10px; }
+        .sig-box p { font-weight: 700; color: #2C3E50; font-size: 14px; margin-bottom: 5px; }
+        .sig-box span { font-size: 14px; font-weight: 700; color: #2C3E50; display: block; margin-top: 5px; }
 
-        /* أزرار الطباعة */
-        .actions-bar { 
-            text-align: center; 
-            margin-top: 20px; 
-            margin-bottom: 20px;
-        }
-        .btn { 
-            padding: 10px 25px; 
-            border-radius: 4px; 
-            border: none; 
-            font-weight: 700; 
-            font-size: 16px; 
-            cursor: pointer; 
-            background: #2C3E50; 
-            color: white; 
-            font-family: 'Cairo';
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .actions-bar { text-align: center; margin-top: 20px; margin-bottom: 20px; }
+        .btn { padding: 10px 25px; border-radius: 4px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; background: #2C3E50; color: white; font-family: 'Cairo'; display: inline-flex; align-items: center; gap: 8px; }
         .btn:hover { background: #1A2226; }
 
-        /* إعدادات الطباعة */
         @media print {
             body { background: white; padding: 0; display: block; }
             .report-page { box-shadow: none; width: 100%; min-height: auto; padding: 0; }
@@ -143,7 +81,6 @@
         </div>
 
         <div class="report-page">
-            <!-- الهيدر -->
             <div class="header">
                 <div class="header-logo">
                     <img src="logo.jpg" alt="Logo">
@@ -158,7 +95,6 @@
                 </div>
             </div>
 
-            <!-- البيانات الأساسية -->
             <table>
                 <tr>
                     <th>الفرع</th>
@@ -180,28 +116,23 @@
                 </tr>
             </table>
 
-            <!-- وصف المشكلة -->
             <div class="section-title">وصف المشكلة (البلاغ):</div>
             <div class="section-content" id="v-desc">-</div>
 
-            <!-- صورة المشكلة (لو موجودة) -->
             <div id="v-image-container" style="display: none; text-align: center; margin-bottom: 25px;">
                 <img id="v-image" src="" alt="صورة المشكلة" style="max-width: 100%; max-height: 250px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
 
-            <!-- تفاصيل الإصلاح -->
             <div id="resolution-box" style="display: none;">
                 <div class="section-title" style="background: #00A65A;">تفاصيل الإصلاح (من مسئول الصيانة):</div>
                 <div class="section-content" id="v-resolution" style="background: #E8F5E9; border-color: #00A65A;">-</div>
             </div>
 
-            <!-- ملاحظات الفرع -->
             <div id="branch-notes-box" style="display: none;">
                 <div class="section-title" style="background: #3498DB;">ملاحظات مدير الفرع (تأكيد الإصلاح):</div>
                 <div class="section-content" id="v-branch-notes" style="background: #E3F2FD; border-color: #3498DB;">-</div>
             </div>
 
-            <!-- سجل الإجراءات (المصداقية) -->
             <div class="section-title" style="background: #7F8C8D;">سجل الإجراءات (التسلسل الزمني):</div>
             <table class="timeline-table">
                 <thead>
@@ -222,12 +153,12 @@
                 <div class="sig-box">
                     <div class="sig-line"></div>
                     <p>توقيع مدير الفرع</p>
-                    <span>الاسم: ____________________</span>
+                    <span>الاسم: <span id="v-branch-manager-name" style="color:#3498DB;">-</span></span>
                 </div>
                 <div class="sig-box">
                     <div class="sig-line"></div>
                     <p>توقيع مسئول الصيانة</p>
-                    <span>الاسم: ____________________</span>
+                    <span>الاسم: <span id="v-maintenance-manager-name" style="color:#3498DB;">-</span></span>
                 </div>
             </div>
         </div>
@@ -246,7 +177,6 @@
         }
 
         async function loadTicket() {
-            // جلب بيانات التذكرة
             const { data: t, error } = await supabase.from('tickets')
                 .select('*, assets(name, code), branches(name)')
                 .eq('id', ticketId)
@@ -257,7 +187,6 @@
                 return; 
             }
 
-            // جلب أسماء الأشخاص المعنيين (الفرع والصيانة)
             let createdByName = 'مدير الفرع';
             let closedByName = 'مسئول الصيانة';
 
@@ -270,7 +199,6 @@
                 if(p2) closedByName = p2.full_name;
             }
 
-            // تعبئة البيانات
             document.getElementById('t-id').innerText = `#${t.id}`;
             document.getElementById('v-branch').innerText = t.branches?.name || '-';
             document.getElementById('v-asset').innerText = `${t.assets?.name || ''} (${t.assets?.code || ''})`;
@@ -297,16 +225,24 @@
                 document.getElementById('v-resolution').innerText = t.resolution_notes;
             }
 
-            if(t.status === 'closed' && t.branch_notes) {
-                document.getElementById('branch-notes-box').style.display = 'block';
-                document.getElementById('v-branch-notes').innerText = t.branch_notes;
+            // عرض ملاحظات الفرع واسم مدير الفرع
+            if(t.status === 'closed') {
+                if(t.branch_notes) {
+                    document.getElementById('branch-notes-box').style.display = 'block';
+                    document.getElementById('v-branch-notes').innerText = t.branch_notes;
+                }
+                if(t.branch_manager_name) {
+                    document.getElementById('v-branch-manager-name').innerText = t.branch_manager_name;
+                }
             }
 
-            // بناء سجل الإجراءات (Timeline)
+            // اسم مسئول الصيانة في التوقيع
+            document.getElementById('v-maintenance-manager-name').innerText = closedByName;
+
+            // بناء سجل الإجراءات
             const timelineBody = document.getElementById('timeline-body');
             let rows = '';
 
-            // 1. إنشاء التذكرة
             rows += `<tr>
                 <td>فتح البلاغ</td>
                 <td>${createdByName}</td>
@@ -314,7 +250,6 @@
                 <td class="action-done">تم</td>
             </tr>`;
 
-            // 2. إصلاح المسؤول
             if(t.status === 'pending_approval' || t.status === 'closed') {
                 rows += `<tr>
                     <td>إجراء الصيانة وإرسال للفرع</td>
@@ -331,11 +266,10 @@
                 </tr>`;
             }
 
-            // 3. تأكيد الفرع
             if(t.status === 'closed') {
                 rows += `<tr>
                     <td>تأكيد الفرع وإغلاق التذكرة</td>
-                    <td>${createdByName}</td>
+                    <td>${t.branch_manager_name || createdByName}</td>
                     <td>${new Date().toLocaleString('ar-EG')}</td>
                     <td class="action-done">تم الإغلاق</td>
                 </tr>`;
