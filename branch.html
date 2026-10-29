@@ -15,21 +15,33 @@
         .sidebar { width: 250px; background: var(--glpi-sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
         .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
         .sidebar-header i { color: var(--glpi-accent); margin-left: 10px; }
-        .nav-menu { padding: 10px 0; flex-grow: 1; }
+        .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto;}
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
         .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
         .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--glpi-accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
         .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; position: relative; }
+        
+        /* الإشعارات */
+        .notif-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; position: relative; margin-left: 15px;}
+        .notif-badge { position: absolute; top: -5px; right: -10px; background: var(--glpi-danger); color: white; font-size: 11px; font-weight: bold; border-radius: 50%; padding: 2px 6px; display: none; }
+        .notif-dropdown { display: none; position: absolute; top: 40px; left: 0; background: white; color: #333; width: 300px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; max-height: 300px; overflow-y: auto; }
+        .notif-header { padding: 10px 15px; font-weight: 700; border-bottom: 1px solid #eee; background: #f9f9f9; border-radius: 8px 8px 0 0; }
+        .notif-item { padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 13px; transition: 0.2s; cursor: pointer; }
+        .notif-item:hover { background: #f1f5f9; }
+        .notif-item.unread { background: #e8f4f8; font-weight: 700; }
+        
         .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
         .refresh-btn:hover { background: #2980B9; }
         .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; }
+        
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; overflow-x: auto; }
+        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; overflow-x: auto;}
         .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
@@ -89,6 +101,14 @@
                 <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث</button>
             </div>
             <div class="user-profile">
+                <button class="notif-btn" onclick="toggleNotifDropdown()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notif-badge">0</span>
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">الإشعارات</div>
+                    <div id="notif-list"></div>
+                </div>
                 <span id="header-username">مدير فرع</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
             </div>
         </div>
@@ -255,6 +275,44 @@
 
         window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات بنجاح', 'success'); }
 
+        // --- الإشعارات ---
+        window.toggleNotifDropdown = () => {
+            const dd = document.getElementById('notif-dropdown');
+            dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+            if(dd.style.display === 'block') markNotificationsRead();
+        }
+
+        async function markNotificationsRead() {
+            const unread = allBranchTickets.filter(t => !t.is_read_by_branch && t.status === 'pending_approval');
+            if(unread.length === 0) return;
+            
+            for(let t of unread) {
+                await supabase.from('tickets').update({ is_read_by_branch: true }).eq('id', t.id);
+            }
+            loadData();
+        }
+
+        async function checkNotifications() {
+            const unread = allBranchTickets.filter(t => !t.is_read_by_branch && t.status === 'pending_approval');
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            
+            if(unread.length > 0) { badge.innerText = unread.length; badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+
+            if(allBranchTickets.length === 0) { list.innerHTML = '<div class="notif-item">لا توجد إشعارات.</div>'; }
+            else {
+                list.innerHTML = allBranchTickets.slice(0, 5).map(t => {
+                    const isUnread = !t.is_read_by_branch && t.status === 'pending_approval';
+                    const icon = t.status === 'pending_approval' ? 'fa-hourglass-half' : t.status === 'closed' ? 'fa-check-circle' : 'fa-envelope-open';
+                    return `<div class="notif-item ${isUnread ? 'unread' : ''}" onclick="window.open('ticket-view.html?id=${t.id}', '_blank')">
+                        <i class="fas ${icon}" style="margin-left:5px;"></i> 
+                        تذكرة #${t.id} - ${t.description.substring(0,20)}...
+                    </div>`;
+                }).join('');
+            }
+        }
+
         async function loadData() {
             const { data: assets } = await supabase.from('assets').select('*').eq('branch_id', userProfile.branch_id);
             allBranchAssets = assets || [];
@@ -310,6 +368,7 @@
                                  '<span class="badge bg-red">مرفوض</span>';
                 tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${statusHtml}</td><td>${actions}</td></tr>`;
             });
+            checkNotifications();
         }
 
         window.openAssetsView = (filter, title) => {
@@ -390,7 +449,8 @@
 
             await supabase.from('tickets').insert([{ 
                 asset_id, branch_id: userProfile.branch_id, title: 'بلاغ عطل', 
-                description: desc, category, priority, image_url, created_by: userProfile.id 
+                description: desc, category, priority, image_url, created_by: userProfile.id,
+                is_read_by_maintenance: false, is_read_by_admin: false
             }]);
             
             await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
@@ -425,7 +485,8 @@
                 status: 'closed',
                 branch_notes: notes,
                 branch_manager_name: managerName,
-                maintenance_name: maintName
+                maintenance_name: maintName,
+                is_read_by_maintenance: false // إشعار جديد للمسؤول
             }).eq('id', currentApproveTicketId);
             
             await supabase.from('assets').update({ status: 'working' }).eq('id', currentApproveAssetId);
@@ -437,7 +498,7 @@
 
         window.rejectRepair = (ticketId) => {
             showConfirm('هل أنت متأكد من رفض الإصلاح وإعادة فتح التذكرة؟', async () => {
-                await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع' }).eq('id', ticketId);
+                await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع', is_read_by_maintenance: false }).eq('id', ticketId);
                 loadData();
                 showToast('تم رفض الإصلاح.', 'info');
             });
