@@ -25,7 +25,7 @@
         .content-body { flex: 1; padding: 25px; overflow-y: auto; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center;}
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
         td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; }
@@ -33,6 +33,7 @@
         .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
         .btn-primary { background: var(--glpi-navbar); color: white; }
         .btn-success { background: var(--glpi-success); color: white; }
+        .btn-danger { background: var(--glpi-danger); color: white; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
         .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
@@ -41,6 +42,10 @@
         .bg-green { background: var(--glpi-success); }
         .bg-red { background: var(--glpi-danger); }
         .bg-blue { background: #3498DB; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 500px; max-width: 90%; border-radius: 8px; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
     </style>
 </head>
 <body>
@@ -63,6 +68,10 @@
             <div id="tab-branches" class="tab active">
                 <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
                 <div class="table-container">
+                    <div class="table-header">
+                        <span>قائمة الفروع</span>
+                        <button class="btn btn-success" onclick="openBranchModal()">إضافة فرع جديد</button>
+                    </div>
                     <table id="tbl-branches"><thead><tr><th>#</th><th>اسم الفرع</th><th>الكود</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
@@ -71,41 +80,69 @@
             <div id="tab-users" class="tab">
                 <div class="page-title"><span><i class="fas fa-users"></i> إدارة المستخدمين</span></div>
                 <div class="table-container">
+                    <div class="table-header">
+                        <span>قائمة المستخدمين</span>
+                        <button class="btn btn-success" onclick="openUserModal()">إضافة مستخدم جديد</button>
+                    </div>
                     <table id="tbl-users"><thead><tr><th>اسم المستخدم</th><th>الاسم بالكامل</th><th>الدور</th><th>الفرع</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- مودال تعديل الفرع -->
-    <div id="edit-branch-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
-        <div class="table-container" style="width: 400px; padding: 20px; margin: 0;">
-            <h3 style="margin-bottom: 20px; color: var(--glpi-navbar);">تعديل اسم الفرع</h3>
-            <input type="hidden" id="edit-branch-id">
+    <!-- مودال الفروع (إضافة / تعديل) -->
+    <div id="branch-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="branch-modal-title">إضافة فرع</h3>
+                <button class="modal-close" onclick="document.getElementById('branch-modal').style.display='none'">&times;</button>
+            </div>
+            <input type="hidden" id="branch-id">
             <div class="form-group">
                 <label class="form-label">اسم الفرع</label>
-                <input type="text" id="edit-branch-name" class="form-control">
+                <input type="text" id="branch-name" class="form-control" placeholder="مثال: فرع المعادي">
             </div>
-            <button class="btn btn-primary" onclick="saveBranch()" style="width: 100%;">حفظ التعديلات</button>
-            <button class="btn" onclick="document.getElementById('edit-branch-modal').style.display='none'" style="width: 100%; margin-top: 10px; background: #ccc;">إلغاء</button>
+            <div class="form-group">
+                <label class="form-label">كود الفرع</label>
+                <input type="text" id="branch-code" class="form-control" placeholder="مثال: BR-17">
+            </div>
+            <button class="btn btn-primary" onclick="saveBranch()" style="width: 100%;">حفظ</button>
         </div>
     </div>
 
-    <!-- مودال تعديل المستخدم -->
-    <div id="edit-user-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
-        <div class="table-container" style="width: 400px; padding: 20px; margin: 0;">
-            <h3 style="margin-bottom: 20px; color: var(--glpi-navbar);">تعديل بيانات المستخدم</h3>
-            <input type="hidden" id="edit-user-id">
+    <!-- مودال المستخدمين (إضافة / تعديل) -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="user-modal-title">إضافة مستخدم</h3>
+                <button class="modal-close" onclick="document.getElementById('user-modal').style.display='none'">&times;</button>
+            </div>
+            <input type="hidden" id="user-id">
+            <div class="form-group">
+                <label class="form-label">اسم المستخدم (للدخول)</label>
+                <input type="text" id="user-username" class="form-control" placeholder="مثال: branch17">
+            </div>
             <div class="form-group">
                 <label class="form-label">الاسم بالكامل</label>
-                <input type="text" id="edit-user-fullname" class="form-control">
+                <input type="text" id="user-fullname" class="form-control" placeholder="مثال: فرع المعادي">
             </div>
             <div class="form-group">
-                <label class="form-label">كلمة المرور الجديدة (اتركها فارغة إذا لا تريد التغيير)</label>
-                <input type="password" id="edit-user-password" class="form-control">
+                <label class="form-label">كلمة المرور</label>
+                <input type="password" id="user-password" class="form-control" placeholder="اتركها فارغة إذا لا تريد تغييرها">
             </div>
-            <button class="btn btn-primary" onclick="saveUser()" style="width: 100%;">حفظ التعديلات</button>
-            <button class="btn" onclick="document.getElementById('edit-user-modal').style.display='none'" style="width: 100%; margin-top: 10px; background: #ccc;">إلغاء</button>
+            <div class="form-group">
+                <label class="form-label">الصلاحية</label>
+                <select id="user-role" class="form-control">
+                    <option value="branch">فرع</option>
+                    <option value="maintenance">مسئول صيانة</option>
+                    <option value="admin">أدمن</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الفرع (خاص بالفرع فقط)</label>
+                <select id="user-branch" class="form-control"></select>
+            </div>
+            <button class="btn btn-primary" onclick="saveUser()" style="width: 100%;">حفظ</button>
         </div>
     </div>
 
@@ -114,7 +151,8 @@
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
-        
+        let globalBranches = [];
+
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
             if(!user) { window.location.replace('index.html'); return; }
@@ -140,10 +178,20 @@
         async function loadData() {
             // جلب الفروع
             const { data: branches } = await supabase.from('branches').select('*').order('id');
+            globalBranches = branches || [];
             const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
             branches?.forEach(b => {
-                tbodyB.innerHTML += `<tr><td>${b.id}</td><td>${b.name}</td><td>${b.code}</td><td><button class="btn btn-primary" onclick="editBranch(${b.id}, '${b.name}')">تعديل</button></td></tr>`;
+                tbodyB.innerHTML += `<tr>
+                    <td>${b.id}</td>
+                    <td>${b.name}</td>
+                    <td>${b.code}</td>
+                    <td><button class="btn btn-primary" onclick="editBranch(${b.id}, '${b.name}', '${b.code}')">تعديل</button></td>
+                </tr>`;
             });
+
+            // تعبئة اختيار الفرع في المودال
+            const branchOptions = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            document.getElementById('user-branch').innerHTML = branchOptions;
 
             // جلب المستخدمين
             const { data: users } = await supabase.from('profiles').select('*, branches(name)').order('created_at');
@@ -156,56 +204,103 @@
                     <td>${u.full_name}</td>
                     <td><span class="badge ${u.role === 'admin' ? 'bg-red' : u.role === 'maintenance' ? 'bg-blue' : 'bg-green'}">${roleName}</span></td>
                     <td>${branchName}</td>
-                    <td><button class="btn btn-primary" onclick="editUser('${u.id}', '${u.full_name}')">تعديل</button></td>
+                    <td><button class="btn btn-primary" onclick="editUser('${u.id}', '${u.username}', '${u.full_name}', '${u.role}', '${u.branch_id || ''}')">تعديل</button></td>
                 </tr>`;
             });
         }
 
-        // --- إدارة الفروع ---
-        window.editBranch = (id, name) => {
-            document.getElementById('edit-branch-id').value = id;
-            document.getElementById('edit-branch-name').value = name;
-            document.getElementById('edit-branch-modal').style.display = 'flex';
+        // --- الفروع ---
+        window.openBranchModal = () => {
+            document.getElementById('branch-modal-title').innerText = 'إضافة فرع';
+            document.getElementById('branch-id').value = '';
+            document.getElementById('branch-name').value = '';
+            document.getElementById('branch-code').value = '';
+            document.getElementById('branch-modal').style.display = 'flex';
+        }
+
+        window.editBranch = (id, name, code) => {
+            document.getElementById('branch-modal-title').innerText = 'تعديل فرع';
+            document.getElementById('branch-id').value = id;
+            document.getElementById('branch-name').value = name;
+            document.getElementById('branch-code').value = code;
+            document.getElementById('branch-modal').style.display = 'flex';
         }
 
         window.saveBranch = async () => {
-            const id = document.getElementById('edit-branch-id').value;
-            const name = document.getElementById('edit-branch-name').value;
-            if(!name) return alert('اكتب اسم الفرع');
+            const id = document.getElementById('branch-id').value;
+            const name = document.getElementById('branch-name').value;
+            const code = document.getElementById('branch-code').value;
+            if(!name || !code) return alert('اكتب اسم وكود الفرع');
             
-            await supabase.from('branches').update({ name }).eq('id', id);
-            document.getElementById('edit-branch-modal').style.display = 'none';
+            if(id) {
+                await supabase.from('branches').update({ name, code }).eq('id', id);
+            } else {
+                await supabase.from('branches').insert([{ name, code }]);
+            }
+            document.getElementById('branch-modal').style.display = 'none';
             loadData();
         }
 
-        // --- إدارة المستخدمين ---
-        window.editUser = (id, fullname) => {
-            document.getElementById('edit-user-id').value = id;
-            document.getElementById('edit-user-fullname').value = fullname;
-            document.getElementById('edit-user-password').value = '';
-            document.getElementById('edit-user-modal').style.display = 'flex';
+        // --- المستخدمين ---
+        window.openUserModal = () => {
+            document.getElementById('user-modal-title').innerText = 'إضافة مستخدم';
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-username').disabled = false;
+            document.getElementById('user-fullname').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = 'branch';
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
+        window.editUser = (id, username, fullname, role, branch_id) => {
+            document.getElementById('user-modal-title').innerText = 'تعديل مستخدم';
+            document.getElementById('user-id').value = id;
+            document.getElementById('user-username').value = username;
+            document.getElementById('user-username').disabled = true; // مينفعش نغير اليوزرنيم
+            document.getElementById('user-fullname').value = fullname;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = role;
+            if(branch_id) document.getElementById('user-branch').value = branch_id;
+            document.getElementById('user-modal').style.display = 'flex';
         }
 
         window.saveUser = async () => {
-            const id = document.getElementById('edit-user-id').value;
-            const fullname = document.getElementById('edit-user-fullname').value;
-            const password = document.getElementById('edit-user-password').value;
+            const id = document.getElementById('user-id').value;
+            const username = document.getElementById('user-username').value.trim();
+            const fullname = document.getElementById('user-fullname').value.trim();
+            const password = document.getElementById('user-password').value;
+            const role = document.getElementById('user-role').value;
+            const branch_id = role === 'branch' ? document.getElementById('user-branch').value : null;
             
-            if(!fullname) return alert('اكتب الاسم');
+            if(!fullname) return alert('اكتب الاسم بالكامل');
 
-            // تحديث الاسم في جدول البروفايل
-            await supabase.from('profiles').update({ full_name: fullname }).eq('id', id);
-
-            // تحديث الباسورد (لو مكتوب باسورد جديد)
-            if(password) {
-                // في Supabase، تغيير باسورد مستخدم تاني بيتطلب صلاحيات أدمن، وهنا بنستخدم الـ API المخصص
-                const { error } = await supabase.auth.admin.updateUserById(id, { password: password });
-                if(error) alert('تم تحديث الاسم، لكن حدث خطأ في تغيير الباسورد: ' + error.message);
+            if(id) {
+                // تعديل مستخدم موجود
+                await supabase.from('profiles').update({ full_name: fullname, role, branch_id }).eq('id', id);
+                
+                if(password) {
+                    const { error } = await supabase.rpc('change_user_password', { target_user_id: id, new_password: password });
+                    if(error) alert('تم تحديث البيانات، لكن خطأ في تغيير الباسورد: ' + error.message);
+                }
+            } else {
+                // إضافة مستخدم جديد
+                if(!username || !password) return alert('اكتب اسم المستخدم وكلمة المرور');
+                
+                const { error } = await supabase.rpc('create_new_user', { 
+                    p_username: username, 
+                    p_password: password, 
+                    p_full_name: fullname, 
+                    p_role: role, 
+                    p_branch_id: branch_id 
+                });
+                
+                if(error) return alert('خطأ في إضافة المستخدم: ' + error.message);
             }
 
-            document.getElementById('edit-user-modal').style.display = 'none';
+            document.getElementById('user-modal').style.display = 'none';
             loadData();
-            alert('تم حفظ التعديلات بنجاح');
+            alert('تم الحفظ بنجاح');
         }
     </script>
 </body>
