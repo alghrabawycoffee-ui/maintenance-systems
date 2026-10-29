@@ -103,7 +103,7 @@
             </div>
 
             <div id="resolution-box" style="display: none;">
-                <div class="section-title" style="background: #00A65A;">تفاصيل الإصلاح (من القائم بالصيانة):</div>
+                <div class="section-title" style="background: #00A65A;">تفاصيل الإصلاح:</div>
                 <div class="section-content" id="v-resolution" style="background: #E8F5E9; border-color: #00A65A;">-</div>
             </div>
 
@@ -142,27 +142,15 @@
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-        import { showToast } from './ui.js';
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
 
         const ticketId = new URLSearchParams(window.location.search).get('id');
-        
-        if(!ticketId) { 
-            document.body.innerHTML = '<h1 style="text-align:center; margin-top:100px; font-family:Cairo;">لم يتم تحديد تذكرة للعرض، يرجى الدخول من جدول التذاكر.</h1>';
-        } else {
-            loadTicket();
-        }
+        if(!ticketId) { document.body.innerHTML = '<h1 style="text-align:center;">لم يتم تحديد تذكرة.</h1>'; } else { loadTicket(); }
 
         async function loadTicket() {
-            const { data: t, error } = await supabase.from('tickets')
-                .select('*, assets(name, code), branches(name)')
-                .eq('id', ticketId)
-                .single();
+            const { data: t, error } = await supabase.from('tickets').select('*, assets(name, code), branches(name)').eq('id', ticketId).single();
 
-            if(error || !t) { 
-                document.getElementById('v-desc').innerText = 'التذكرة غير موجودة أو تم حذفها.';
-                return; 
-            }
+            if(error || !t) { document.getElementById('v-desc').innerText = 'التذكرة غير موجودة.'; return; }
 
             let createdByName = 'مدير الفرع';
             let closedByName = 'مسئول الصيانة';
@@ -181,21 +169,15 @@
             document.getElementById('v-asset').innerText = `${t.assets?.name || ''} (${t.assets?.code || ''})`;
             document.getElementById('v-date').innerText = new Date(t.created_at).toLocaleString('ar-EG');
             document.getElementById('v-cat').innerText = t.category || 'غير محدد';
-            
-            let pText = t.priority === 'urgent' ? 'طارئة جداً' : t.priority === 'high' ? 'مهمة' : 'عادية';
-            document.getElementById('v-priority').innerText = pText;
+            document.getElementById('v-priority').innerText = t.priority === 'urgent' ? 'طارئة جداً' : t.priority === 'high' ? 'مهمة' : 'عادية';
 
             let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
                              t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيد الفرع</span>' :
-                             t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
-                             '<span class="badge" style="background:#3498DB;">قيد المعالجة</span>';
+                             t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : '<span class="badge" style="background:#3498DB;">قيد المعالجة</span>';
             document.getElementById('v-status').innerHTML = statusHtml;
             document.getElementById('v-desc').innerText = t.description || 'لا يوجد وصف';
 
-            if(t.image_url) {
-                document.getElementById('v-image-container').style.display = 'block';
-                document.getElementById('v-image').src = t.image_url;
-            }
+            if(t.image_url) { document.getElementById('v-image-container').style.display = 'block'; document.getElementById('v-image').src = t.image_url; }
 
             if((t.status === 'closed' || t.status === 'pending_approval') && t.resolution_notes) {
                 document.getElementById('resolution-box').style.display = 'block';
@@ -203,61 +185,28 @@
             }
 
             if(t.status === 'closed') {
-                if(t.branch_notes) {
-                    document.getElementById('branch-notes-box').style.display = 'block';
-                    document.getElementById('v-branch-notes').innerText = t.branch_notes;
-                }
-                if(t.branch_manager_name) {
-                    document.getElementById('v-branch-manager-name').innerText = t.branch_manager_name;
-                }
+                if(t.branch_notes) { document.getElementById('branch-notes-box').style.display = 'block'; document.getElementById('v-branch-notes').innerText = t.branch_notes; }
+                if(t.branch_manager_name) { document.getElementById('v-branch-manager-name').innerText = t.branch_manager_name; }
             }
 
-            // اسم القائم بالصيانة
+            // عرض اسم القائم بالصيانة اللي الفرع كتبه
             document.getElementById('v-maintenance-name').innerText = t.maintenance_name || closedByName;
 
-            // بناء سجل الإجراءات
             const timelineBody = document.getElementById('timeline-body');
             let rows = '';
-
-            rows += `<tr>
-                <td>فتح البلاغ</td>
-                <td>${createdByName}</td>
-                <td>${new Date(t.created_at).toLocaleString('ar-EG')}</td>
-                <td class="action-done">تم</td>
-            </tr>`;
-
+            rows += `<tr><td>فتح البلاغ</td><td>${createdByName}</td><td>${new Date(t.created_at).toLocaleString('ar-EG')}</td><td class="action-done">تم</td></tr>`;
+            
             if(t.status === 'pending_approval' || t.status === 'closed') {
-                rows += `<tr>
-                    <td>إجراء الصيانة وإرسال للفرع</td>
-                    <td>${t.maintenance_name || closedByName}</td>
-                    <td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td>
-                    <td class="action-done">تم</td>
-                </tr>`;
+                rows += `<tr><td>إجراء الصيانة وإرسال للفرع</td><td>${t.maintenance_name || closedByName}</td><td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td><td class="action-done">تم</td></tr>`;
             } else {
-                rows += `<tr>
-                    <td>إجراء الصيانة</td>
-                    <td>مسئول الصيانة</td>
-                    <td>-</td>
-                    <td class="action-pending">قيد الانتظار</td>
-                </tr>`;
+                rows += `<tr><td>إجراء الصيانة</td><td>-</td><td>-</td><td class="action-pending">قيد الانتظار</td></tr>`;
             }
 
             if(t.status === 'closed') {
-                rows += `<tr>
-                    <td>تأكيد الفرع وإغلاق التذكرة</td>
-                    <td>${t.branch_manager_name || createdByName}</td>
-                    <td>${new Date().toLocaleString('ar-EG')}</td>
-                    <td class="action-done">تم الإغلاق</td>
-                </tr>`;
+                rows += `<tr><td>تأكيد الفرع وإغلاق التذكرة</td><td>${t.branch_manager_name || createdByName}</td><td>${new Date().toLocaleString('ar-EG')}</td><td class="action-done">تم الإغلاق</td></tr>`;
             } else {
-                rows += `<tr>
-                    <td>تأكيد الفرع</td>
-                    <td>${t.branches?.name}</td>
-                    <td>-</td>
-                    <td class="action-pending">بانتظار التأكيد</td>
-                </tr>`;
+                rows += `<tr><td>تأكيد الفرع</td><td>${t.branches?.name}</td><td>-</td><td class="action-pending">بانتظار التأكيد</td></tr>`;
             }
-
             timelineBody.innerHTML = rows;
         }
     </script>
