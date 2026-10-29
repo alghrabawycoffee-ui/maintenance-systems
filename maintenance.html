@@ -33,6 +33,7 @@
         .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
         .btn-primary { background: var(--glpi-navbar); color: white; }
         .btn-success { background: var(--glpi-success); color: white; }
+        .btn-danger { background: var(--glpi-danger); color: white; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
@@ -50,20 +51,19 @@
         .stat-card .num { font-size: 28px; font-weight: 700; }
         .stat-card i { font-size: 40px; color: #ECF0F1; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 500px; border-radius: 8px; padding: 25px; }
+        .modal-content { background: white; width: 600px; border-radius: 8px; padding: 25px; max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
+
+        /* تصميم الفروع الجديد (كروت) */
+        .branches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .branch-card { background: white; border: 1px solid var(--glpi-border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .branch-card:hover { border-color: var(--glpi-accent); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .branch-card i { font-size: 30px; color: var(--glpi-accent); margin-bottom: 10px; }
+        .branch-card h3 { font-size: 16px; color: var(--glpi-navbar); }
         
-        /* تنسيق صفحة الفروع والعهد */
-        .branches-layout { display: flex; gap: 20px; }
-        .branch-list { width: 250px; background: white; border: 1px solid var(--glpi-border); border-radius: 4px; padding: 10px; max-height: 600px; overflow-y: auto; }
-        .branch-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; border-radius: 4px; font-weight: 700; }
-        .branch-item:hover { background: #F4F6F9; }
-        .branch-item.active { background: var(--glpi-navbar); color: white; }
-        .branch-details { flex: 1; }
-        .asset-item { background: white; padding: 15px; margin-bottom: 10px; border: 1px solid var(--glpi-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .asset-item:hover { background: #F9F9F9; border-color: var(--glpi-accent); }
-        .history-box { display: none; background: #F9F9F9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px; }
+        .asset-list-modal { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .asset-item-modal { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -71,7 +71,7 @@
         <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance</div>
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر</button>
-            <button class="nav-btn" onclick="showTab('branches-history', this)"><i class="fas fa-store"></i> الفروع والعهد</button>
+            <button class="nav-btn" onclick="showTab('branches', this)"><i class="fas fa-store"></i> الفروع</button>
             <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> كل الأصول</button>
             <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> إرسال عهدة</button>
         </div>
@@ -84,42 +84,28 @@
         </div>
 
         <div class="content-body">
-            <!-- تبويب التذاكر -->
+            <!-- التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> لوحة التحكم</span></div>
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div><h3>تذاكر مفتوحة</h3><div class="num" style="color:var(--glpi-danger);" id="st-open">0</div></div>
-                        <i class="fas fa-envelope-open"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div><h3>بانتظار تأكيد الفروع</h3><div class="num" style="color:#9b59b6;" id="st-pending">0</div></div>
-                        <i class="fas fa-hourglass-half"></i>
-                    </div>
-                    <div class="stat-card">
-                        <div><h3>تذاكر مغلقة</h3><div class="num" style="color:var(--glpi-success);" id="st-closed">0</div></div>
-                        <i class="fas fa-check-circle"></i>
-                    </div>
+                    <div class="stat-card"><div><h3>تذاكر مفتوحة</h3><div class="num" style="color:var(--glpi-danger);" id="st-open">0</div></div><i class="fas fa-envelope-open"></i></div>
+                    <div class="stat-card"><div><h3>بانتظار تأكيد الفروع</h3><div class="num" style="color:#9b59b6;" id="st-pending">0</div></div><i class="fas fa-hourglass-half"></i></div>
+                    <div class="stat-card"><div><h3>تذاكر مغلقة</h3><div class="num" style="color:var(--glpi-success);" id="st-closed">0</div></div><i class="fas fa-check-circle"></i></div>
                 </div>
                 <div class="table-container">
                     <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <!-- تبويب الفروع والعهد (الجديد) -->
-            <div id="tab-branches-history" class="tab">
-                <div class="page-title"><span><i class="fas fa-store"></i> سجل الفروع والعهد</span></div>
-                <div class="branches-layout">
-                    <div class="branch-list" id="branch-list-container">
-                        <!-- سيتم تعبئتها بالفروع -->
-                    </div>
-                    <div class="branch-details" id="branch-details-container">
-                        <div style="text-align:center; padding:50px; color:#777;">اختر فرعاً من القائمة لعرض أصوله وسجلها.</div>
-                    </div>
+            <!-- الفروع (جديد) -->
+            <div id="tab-branches" class="tab">
+                <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
+                <div class="branches-grid" id="branches-grid-container">
+                    <!-- سيتم تعبئتها -->
                 </div>
             </div>
 
-            <!-- تبويب الأصول -->
+            <!-- الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -139,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- تبويب إرسال عهدة -->
+            <!-- إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
@@ -161,9 +147,20 @@
         </div>
     </div>
 
-    <!-- مودال الإغلاق -->
-    <div id="close-modal" class="modal">
+    <!-- Modal لسجل الفرع -->
+    <div id="branch-modal" class="modal">
         <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="branch-modal-title">أصول الفرع</h3>
+                <button class="modal-close" onclick="document.getElementById('branch-modal').style.display='none'">&times;</button>
+            </div>
+            <div id="branch-assets-container" class="asset-list-modal"></div>
+        </div>
+    </div>
+
+    <!-- Modal لإغلاق التذكرة -->
+    <div id="close-modal" class="modal">
+        <div class="modal-content" style="width:500px;">
             <div class="modal-header">
                 <h3>إنهاء التذكرة وإرسالها للفرع</h3>
                 <button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button>
@@ -264,106 +261,34 @@
                 tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${c.branches?.name}</td><td>${statusHtml}</td></tr>`;
             });
 
-            // بناء صفحة الفروع
-            buildBranchesPage();
+            // الفروع (كروت)
+            const grid = document.getElementById('branches-grid-container');
+            grid.innerHTML = allBranches.map(b => `
+                <div class="branch-card" onclick="openBranchDetails(${b.id}, '${b.name}')">
+                    <i class="fas fa-store"></i>
+                    <h3>${b.name}</h3>
+                </div>
+            `).join('');
         }
 
-        // --- صفحة الفروع والعهد الجديدة ---
-        async function buildBranchesPage() {
-            const listContainer = document.getElementById('branch-list-container');
-            listContainer.innerHTML = allBranches.map(b => `<div class="branch-item" id="branch-btn-${b.id}" onclick="selectBranch(${b.id}, '${b.name}')">${b.name}</div>`).join('');
-        }
-
-        window.selectBranch = async (branchId, branchName) => {
-            document.querySelectorAll('.branch-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`branch-btn-${branchId}`).classList.add('active');
-
-            const detailsContainer = document.getElementById('branch-details-container');
-            detailsContainer.innerHTML = '<div style="text-align:center; padding:20px;">جاري تحميل أصول الفرع...</div>';
-
+        window.openBranchDetails = (branchId, branchName) => {
+            document.getElementById('branch-modal-title').innerText = `أصول ${branchName}`;
+            const container = document.getElementById('branch-assets-container');
             const branchAssets = allAssets.filter(a => a.branch_id === branchId);
 
             if(branchAssets.length === 0) {
-                detailsContainer.innerHTML = '<div style="text-align:center; padding:50px; color:#777;">لا توجد أصول مسجلة لهذا الفرع.</div>';
-                return;
-            }
-
-            let html = `<h3 style="margin-bottom: 15px; color: var(--glpi-navbar);">أصول ${branchName}:</h3>`;
-            branchAssets.forEach(a => {
-                html += `
-                    <div class="asset-item" onclick="loadFullHistory(${a.id}, '${a.name}', this)">
-                        <div>
-                            <strong>${a.name}</strong> (${a.code})
-                        </div>
-                        <div>
-                            ${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}
-                        </div>
+                container.innerHTML = '<p style="text-align:center;">لا توجد أصول مسجلة لهذا الفرع.</p>';
+            } else {
+                container.innerHTML = branchAssets.map(a => `
+                    <div class="asset-item-modal">
+                        <div><strong>${a.name}</strong> (${a.code})</div>
+                        <div>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</div>
                     </div>
-                    <div class="history-box" id="history-box-${a.id}"></div>
-                `;
-            });
-            detailsContainer.innerHTML = html;
+                `).join('');
+            }
+            document.getElementById('branch-modal').style.display = 'flex';
         }
 
-        window.loadFullHistory = async (assetId, assetName, element) => {
-            const box = document.getElementById(`history-box-${assetId}`);
-            
-            // لو مفتوح، اقفله
-            if(box.style.display === 'block') {
-                box.style.display = 'none';
-                return;
-            }
-
-            // اقفل أي بوكس تاني مفتوح
-            document.querySelectorAll('.history-box').forEach(b => b.style.display = 'none');
-
-            box.style.display = 'block';
-            box.innerHTML = 'جاري تحميل السجل...';
-
-            // جلب التذاكر الخاصة بالأصل ده
-            const { data: tickets } = await supabase.from('tickets').select('*').eq('asset_id', assetId).order('created_at');
-
-            let rows = '';
-            const asset = allAssets.find(a => a.id === assetId);
-            
-            // 1. تاريخ الإضافة
-            if(asset) {
-                rows += `<tr>
-                    <td>${new Date(asset.created_at).toLocaleString('ar-EG')}</td>
-                    <td style="color:var(--glpi-success); font-weight:bold;">تمت إضافة الأصل</td>
-                    <td>تم إضافة ${asset.name} بكود ${asset.code}</td>
-                </tr>`;
-            }
-
-            // 2. التذاكر
-            tickets?.forEach(t => {
-                rows += `<tr>
-                    <td>${new Date(t.created_at).toLocaleString('ar-EG')}</td>
-                    <td style="color:var(--glpi-danger); font-weight:bold;">تم فتح بلاغ عطل</td>
-                    <td>${t.description} (${t.category || 'بدون تصنيف'})</td>
-                </tr>`;
-                if(t.status === 'closed') {
-                    rows += `<tr>
-                        <td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td>
-                        <td style="color:var(--glpi-success); font-weight:bold;">تم الإصلاح</td>
-                        <td>${t.resolution_notes || 'تم الإصلاح'}</td>
-                    </tr>`;
-                }
-            });
-
-            if(rows === '') {
-                rows = '<tr><td colspan="3" style="text-align:center;">لا يوجد سجل لهذا الأصل بعد.</td></tr>';
-            }
-
-            box.innerHTML = `
-                <table style="width:100%; border-collapse: collapse; margin-top:10px;">
-                    <thead><tr style="background:#eee;"><th>التاريخ</th><th>الحدث</th><th>التفاصيل</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            `;
-        }
-
-        // --- باقي الوظائف ---
         window.openCloseModal = (ticketId, assetId) => {
             currentTicketId = ticketId;
             currentAssetId = assetId;
@@ -382,13 +307,13 @@
             await supabase.from('tickets').update({ 
                 status: 'pending_approval', 
                 resolution_notes: notes,
-                maintenance_name: mName, // حفظ اسم القائم بالصيانة
+                maintenance_name: mName,
                 closed_by: userProfile.id, 
                 closed_at: new Date().toISOString() 
             }).eq('id', currentTicketId);
             
             document.getElementById('close-modal').style.display = 'none';
-            loadData();
+            loadData(); // تحديث تلقائي
             alert('تم إرسال الإصلاح للفرع لتأكيده.');
         }
 
@@ -400,7 +325,8 @@
             if(!name || !code) return alert('اكتب الاسم والكود');
             await supabase.from('assets').insert([{ name, code, branch_id, category, status: 'working' }]);
             document.getElementById('a-name').value = ''; document.getElementById('a-code').value = ''; document.getElementById('a-cat').value = '';
-            loadData(); alert('تم إضافة الأصل');
+            loadData(); // تحديث تلقائي
+            alert('تم إضافة الأصل');
         };
 
         window.sendCustody = async () => {
@@ -411,7 +337,8 @@
             if(!name || !code) return alert('اكتب الاسم والكود');
             await supabase.from('custody_transfers').insert([{ asset_name: name, asset_code: code, branch_id, category, created_by: userProfile.id }]);
             document.getElementById('c-name').value = ''; document.getElementById('c-code').value = ''; document.getElementById('c-cat').value = '';
-            loadData(); alert('تم إرسال العهدة للفرع');
+            loadData(); // تحديث تلقائي
+            alert('تم إرسال العهدة للفرع');
         };
     </script>
 </body>
