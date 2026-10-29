@@ -44,6 +44,12 @@
         .bg-orange { background: #F39C12; }
         .bg-blue { background: #3498DB; }
         .bg-purple { background: #9b59b6; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 500px; border-radius: 8px; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
     </style>
 </head>
 <body>
@@ -114,11 +120,28 @@
         </div>
     </div>
 
+    <!-- Modal for Branch Approval -->
+    <div id="approve-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تأكيد إصلاح التذكرة</h3>
+                <button class="modal-close" onclick="document.getElementById('approve-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ملاحظات الفرع (إجباري):</label>
+                <textarea id="branch-notes-input" class="form-control" rows="3" placeholder="مثال: تم تجربة التكييف وهو يعمل بكفاءة..."></textarea>
+            </div>
+            <button class="btn btn-success" onclick="submitApproval()" style="width:100%;">تأكيد وإغلاق التذكرة</button>
+        </div>
+    </div>
+
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
+        let currentApproveTicketId = null;
+        let currentApproveAssetId = null;
         
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -166,7 +189,8 @@
                 
                 let actions = '-';
                 if(t.status === 'pending_approval') {
-                    actions = `<button class="btn btn-success" style="padding:4px 8px; margin-left:5px;" onclick="approveRepair(${t.id}, ${t.asset_id})">تأكيد الإصلاح</button>
+                    // الزرار هنا بيفتح المودال بدل ما يقفل على طول
+                    actions = `<button class="btn btn-success" style="padding:4px 8px; margin-left:5px;" onclick="openApproveModal(${t.id}, ${t.asset_id})">تم الإصلاح</button>
                                <button class="btn" style="background:var(--glpi-danger); color:white; padding:4px 8px;" onclick="rejectRepair(${t.id})">رفض</button>`;
                 }
 
@@ -221,12 +245,30 @@
             alert('تم إرسال البلاغ بنجاح');
         };
 
-        window.approveRepair = async (ticketId, assetId) => {
-            if(!confirm('هل تأكدت من إصلاح العطل؟ سيتم إغلاق التذكرة نهائياً.')) return;
-            await supabase.from('tickets').update({ status: 'closed' }).eq('id', ticketId);
-            await supabase.from('assets').update({ status: 'working' }).eq('id', assetId);
+        // ---- مودال التأكيد الإجباري ----
+        window.openApproveModal = (ticketId, assetId) => {
+            currentApproveTicketId = ticketId;
+            currentApproveAssetId = assetId;
+            document.getElementById('branch-notes-input').value = '';
+            document.getElementById('approve-modal').style.display = 'flex';
+        }
+
+        window.submitApproval = async () => {
+            const notes = document.getElementById('branch-notes-input').value.trim();
+            if(!notes) return alert('يجب كتابة ملاحظات الفرع أولاً (إجباري) لتأكيد الإصلاح.');
+
+            // تحديث التذكرة وإضافة الملاحظات
+            await supabase.from('tickets').update({ 
+                status: 'closed',
+                branch_notes: notes // حفظ ملاحظات الفرع
+            }).eq('id', currentApproveTicketId);
+            
+            // إرجاع الأصل لحالة سليم
+            await supabase.from('assets').update({ status: 'working' }).eq('id', currentApproveAssetId);
+            
+            document.getElementById('approve-modal').style.display = 'none';
             loadData();
-            alert('تم تأكيد الإصلاح وإغلاق التذكرة.');
+            alert('تم تأكيد الإصلاح وإغلاق التذكرة بنجاح.');
         }
 
         window.rejectRepair = async (ticketId) => {
