@@ -43,6 +43,7 @@
         .bg-red { background: var(--glpi-danger); }
         .bg-orange { background: #F39C12; }
         .bg-blue { background: #3498DB; }
+        .bg-purple { background: #9b59b6; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
         .stat-card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--glpi-border); display: flex; align-items: center; justify-content: space-between; }
         .stat-card h3 { font-size: 14px; color: #7F8C8D; margin-bottom: 5px; }
@@ -79,16 +80,16 @@
                         <i class="fas fa-envelope-open"></i>
                     </div>
                     <div class="stat-card">
+                        <div><h3>بانتظار تأكيد الفروع</h3><div class="num" style="color:#9b59b6;" id="st-pending">0</div></div>
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-card">
                         <div><h3>تذاكر مغلقة</h3><div class="num" style="color:var(--glpi-success);" id="st-closed">0</div></div>
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="stat-card">
-                        <div><h3>إجمالي التذاكر</h3><div class="num" style="color:var(--glpi-navbar);" id="st-total">0</div></div>
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
                 </div>
                 <div class="table-container">
-                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>التصنيف</th><th>الأولوية</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>التصنيف</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
@@ -135,14 +136,14 @@
     <div id="close-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>إغلاق التذكرة</h3>
+                <h3>إنهاء التذكرة وإرسالها للفرع</h3>
                 <button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button>
             </div>
             <div class="form-group">
                 <label class="form-label">تفاصيل الإصلاح (ما تم فعله لحل المشكلة):</label>
                 <textarea id="resolution-input" class="form-control" rows="4" placeholder="مثال: تم تغيير الكومبريسور وتعبئة الفريون..."></textarea>
             </div>
-            <button class="btn btn-success" onclick="confirmClose()" style="width:100%;">تأكيد الإغلاق</button>
+            <button class="btn btn-success" onclick="confirmClose()" style="width:100%;">إرسال للفرع لتأكيد الإصلاح</button>
         </div>
     </div>
 
@@ -181,37 +182,33 @@
             if(btn) btn.classList.add('active');
         }
 
-        function getPriorityBadge(p) {
-            if(p === 'urgent') return '<span class="badge bg-red">طارئة</span>';
-            if(p === 'high') return '<span class="badge bg-orange">مهمة</span>';
-            return '<span class="badge" style="background:#95A5A6;">عادية</span>';
-        }
-
         async function loadData() {
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             
-            let openC = 0, closedC = 0;
+            let openC = 0, closedC = 0, pendingC = 0;
 
             tickets?.forEach(t => {
-                if(t.status === 'closed') closedC++; else openC++;
+                if(t.status === 'closed') closedC++; 
+                else if(t.status === 'pending_approval') pendingC++;
+                else openC++;
 
                 let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
+                                 t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيد الفرع</span>' :
                                  t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
                                  '<span class="badge bg-blue">قيد المعالجة</span>';
                 
-                // زرار عرض التذكرة
                 let action = `<button class="btn btn-primary" onclick="window.open('ticket-view.html?id=${t.id}', '_blank')">عرض</button> `;
-                if(t.status !== 'closed') {
-                    action += `<button class="btn btn-success" style="margin-right:5px;" onclick="openCloseModal(${t.id}, ${t.asset_id})">إغلاق</button>`;
+                if(t.status === 'open' || t.status === 'in_progress') {
+                    action += `<button class="btn btn-success" style="margin-right:5px;" onclick="openCloseModal(${t.id}, ${t.asset_id})">إنهاء وإرسال</button>`;
                 }
 
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.category || '-'}</td><td>${getPriorityBadge(t.priority)}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.category || '-'}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
             });
 
             document.getElementById('st-open').innerText = openC;
             document.getElementById('st-closed').innerText = closedC;
-            document.getElementById('st-total').innerText = tickets?.length || 0;
+            document.getElementById('st-pending').innerText = pendingC;
 
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
@@ -238,19 +235,18 @@
 
         window.confirmClose = async () => {
             const notes = document.getElementById('resolution-input').value.trim();
-            if(!notes) return alert('يجب كتابة تفاصيل الإصلاح قبل الإغلاق');
+            if(!notes) return alert('يجب كتابة تفاصيل الإصلاح قبل الإرسال');
 
             await supabase.from('tickets').update({ 
-                status: 'closed', 
+                status: 'pending_approval', 
                 resolution_notes: notes,
                 closed_by: userProfile.id, 
                 closed_at: new Date().toISOString() 
             }).eq('id', currentTicketId);
             
-            await supabase.from('assets').update({ status: 'working' }).eq('id', currentAssetId);
-            
             document.getElementById('close-modal').style.display = 'none';
             loadData();
+            alert('تم إرسال الإصلاح للفرع لتأكيده.');
         }
 
         window.addAsset = async () => {
