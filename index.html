@@ -27,7 +27,6 @@
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-    
     const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
 
     document.getElementById('login-btn').addEventListener('click', async () => {
@@ -44,7 +43,6 @@
       btn.innerText = 'جاري التحقق...'; btn.disabled = true;
 
       const email = `${username.toLowerCase().trim()}@system.local`;
-
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
@@ -55,11 +53,10 @@
       }
 
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      const role = profile?.role;
       
-      // استخدمنا replace عشان نمسح أي رابط قديم في المتصفح
-      if (role === 'admin') window.location.replace('admin.html');
-      else if (role === 'maintenance') window.location.replace('maintenance.html');
+      // التوجيه باستخدام replace عشان نمنع مشاكل الكاش
+      if (profile?.role === 'admin') window.location.replace('admin.html');
+      else if (profile?.role === 'maintenance') window.location.replace('maintenance.html');
       else window.location.replace('branch.html');
     });
   </script>
