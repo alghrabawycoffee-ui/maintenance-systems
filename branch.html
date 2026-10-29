@@ -6,6 +6,7 @@
     <title>Maintenance System | مدير الفرع</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ui.css">
     <style>
         :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
@@ -21,31 +22,31 @@
         .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .content-body { flex: 1; padding: 25px; overflow-y: auto; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
+        .refresh-btn:hover { background: #2980B9; }
+        .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
         .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
-        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; }
-        tbody tr:nth-child(even) { background: #FAFAFA; }
-        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
+        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { opacity: 0.85; }
         .btn-primary { background: var(--glpi-navbar); color: white; }
         .btn-success { background: var(--glpi-success); color: white; }
+        .btn-danger { background: var(--glpi-danger); color: white; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
-        .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
+        .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; transition: 0.2s; }
+        .form-control:focus { border-color: var(--glpi-accent); background: white; }
         .tab { display: none; } .tab.active { display: block; }
         .badge { padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; }
-        .bg-green { background: var(--glpi-success); }
-        .bg-red { background: var(--glpi-danger); }
-        .bg-orange { background: #F39C12; }
-        .bg-blue { background: #3498DB; }
-        .bg-purple { background: #9b59b6; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 500px; border-radius: 8px; padding: 25px; }
+        .bg-green { background: var(--glpi-success); } .bg-red { background: var(--glpi-danger); } .bg-orange { background: #F39C12; } .bg-blue { background: #3498DB; } .bg-purple { background: #9b59b6; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-content { background: white; width: 500px; border-radius: 8px; padding: 25px; animation: popIn 0.3s ease-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
     </style>
@@ -63,11 +64,14 @@
 
     <div class="main-content">
         <div class="top-header">
-            <div class="user-profile"><span id="header-username">مدير فرع</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
+            <div class="user-profile">
+                <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                <span id="header-username">مدير فرع</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
+            </div>
         </div>
 
-        <div class="content-body">
-            <!-- التذاكر -->
+        <div class="content-body" id="main-content-body">
+            <!-- 1. التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> تذاكر الفرع</span></div>
                 <div class="table-container">
@@ -98,12 +102,12 @@
                         <button class="btn btn-primary" onclick="addTicket()">إرسال البلاغ</button>
                     </div>
                 </div>
-                <div class="table-container">
+                <div class="table-container" id="tickets-container">
                     <table id="tbl-tickets"><thead><tr><th>#</th><th>الوصف</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <!-- الأصول -->
+            <!-- 2. الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> أصول الفرع</span></div>
                 <div class="table-container">
@@ -111,7 +115,7 @@
                 </div>
             </div>
 
-            <!-- العهد -->
+            <!-- 3. العهد -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> العهد المرسلة من الصيانة</span></div>
                 <div class="table-container">
@@ -142,11 +146,13 @@
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        import { showToast, showConfirm, toggleSpinner } from './ui.js';
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
         let currentApproveTicketId = null;
         let currentApproveAssetId = null;
+        let autoRefreshInterval;
         
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -160,6 +166,7 @@
             }
             document.getElementById('header-username').innerText = userProfile.full_name;
             loadData();
+            autoRefreshInterval = setInterval(loadData, 15000); // تحديث تلقائي
         }
         init();
 
@@ -173,6 +180,11 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
+        }
+
+        window.manualRefresh = () => {
+            loadData();
+            showToast('تم تحديث البيانات بنجاح', 'success');
         }
 
         async function loadData() {
@@ -197,7 +209,7 @@
                 let actions = '-';
                 if(t.status === 'pending_approval') {
                     actions = `<button class="btn btn-success" style="padding:4px 8px; margin-left:5px;" onclick="openApproveModal(${t.id}, ${t.asset_id})">تم الإصلاح</button>
-                               <button class="btn" style="background:var(--glpi-danger); color:white; padding:4px 8px;" onclick="rejectRepair(${t.id})">رفض</button>`;
+                               <button class="btn btn-danger" style="padding:4px 8px;" onclick="rejectRepair(${t.id})">رفض</button>`;
                 }
 
                 tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${actions}</td></tr>`;
@@ -210,7 +222,7 @@
                 let actions = '-';
                 if(c.status === 'pending') {
                     actions = `<button class="btn btn-success" style="padding:4px 8px; margin-left:5px;" onclick="respondCustody(${c.id}, 'approved')">موافقة</button>
-                               <button class="btn" style="background:var(--glpi-danger); color:white; padding:4px 8px;" onclick="respondCustody(${c.id}, 'rejected')">رفض</button>`;
+                               <button class="btn btn-danger" style="padding:4px 8px;" onclick="respondCustody(${c.id}, 'rejected')">رفض</button>`;
                 }
                 let statusHtml = c.status === 'pending' ? '<span class="badge bg-orange">في انتظار الموافقة</span>' :
                                  c.status === 'approved' ? '<span class="badge bg-green">تمت الموافقة</span>' : 
@@ -226,8 +238,8 @@
             const desc = document.getElementById('t-desc').value;
             const file = document.getElementById('t-image').files[0];
             
-            if(!asset_id || !desc) return alert('اختر الأصل واكتب الوصف');
-            if(!file) return alert('يجب إرفاق صورة للمشكلة (إجباري)');
+            if(!asset_id || !desc) return showToast('اختر الأصل واكتب الوصف', 'error');
+            if(!file) return showToast('يجب إرفاق صورة للمشكلة (إجباري)', 'error');
 
             const btn = event.target;
             btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
@@ -236,7 +248,7 @@
             const { error } = await supabase.storage.from('ticket-images').upload(fileName, file);
             
             if(error) {
-                alert('حدث خطأ في رفع الصورة: ' + error.message);
+                showToast('حدث خطأ في رفع الصورة: ' + error.message, 'error');
                 btn.innerText = 'إرسال البلاغ'; btn.disabled = false;
                 return;
             }
@@ -253,8 +265,8 @@
             document.getElementById('t-desc').value = '';
             document.getElementById('t-image').value = '';
             btn.innerText = 'إرسال البلاغ'; btn.disabled = false;
-            loadData(); // تحديث تلقائي
-            alert('تم إرسال البلاغ بنجاح');
+            loadData();
+            showToast('تم إرسال البلاغ بنجاح', 'success');
         };
 
         window.openApproveModal = (ticketId, assetId) => {
@@ -269,8 +281,8 @@
             const managerName = document.getElementById('branch-manager-name').value.trim();
             const notes = document.getElementById('branch-notes-input').value.trim();
             
-            if(!managerName) return alert('يجب كتابة اسمك (مدير الفرع).');
-            if(!notes) return alert('يجب كتابة ملاحظات الفرع.');
+            if(!managerName) return showToast('يجب كتابة اسمك (مدير الفرع).', 'error');
+            if(!notes) return showToast('يجب كتابة ملاحظات الفرع.', 'error');
 
             await supabase.from('tickets').update({ 
                 status: 'closed',
@@ -281,28 +293,30 @@
             await supabase.from('assets').update({ status: 'working' }).eq('id', currentApproveAssetId);
             
             document.getElementById('approve-modal').style.display = 'none';
-            loadData(); // تحديث تلقائي
-            alert('تم تأكيد الإصلاح وإغلاق التذكرة بنجاح.');
+            loadData();
+            showToast('تم تأكيد الإصلاح وإغلاق التذكرة بنجاح.', 'success');
         }
 
-        window.rejectRepair = async (ticketId) => {
-            const reason = prompt('اكتب سبب رفض الإصلاح:');
-            if(reason === null) return;
-            await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع: ' + reason }).eq('id', ticketId);
-            loadData(); // تحديث تلقائي
-            alert('تم رفض الإصلاح.');
+        window.rejectRepair = (ticketId) => {
+            showConfirm('هل أنت متأكد من رفض الإصلاح وإعادة فتح التذكرة؟', async () => {
+                await supabase.from('tickets').update({ status: 'open', resolution_notes: 'تم الرفض من الفرع' }).eq('id', ticketId);
+                loadData();
+                showToast('تم رفض الإصلاح.', 'info');
+            });
         }
 
-        window.respondCustody = async (id, status) => {
-            if(!confirm(`هل أنت متأكد من ${status === 'approved' ? 'الموافقة' : 'الرفض'}؟`)) return;
-            const { data: c } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
-            await supabase.from('custody_transfers').update({ status, responded_by: userProfile.id, responded_at: new Date().toISOString() }).eq('id', id);
-            if(status === 'approved') {
-                const { data: newAsset } = await supabase.from('assets').insert([{ code: c.asset_code, name: c.asset_name, category: c.category, branch_id: userProfile.branch_id, status: 'working' }]).select().single();
-                if(newAsset) await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
-            }
-            loadData(); // تحديث تلقائي
-            alert('تم تسجيل الرد بنجاح');
+        window.respondCustody = (id, status) => {
+            const msg = status === 'approved' ? 'هل أنت متأكد من الموافقة على العهدة؟' : 'هل أنت متأكد من رفض العهدة؟';
+            showConfirm(msg, async () => {
+                const { data: c } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
+                await supabase.from('custody_transfers').update({ status, responded_by: userProfile.id, responded_at: new Date().toISOString() }).eq('id', id);
+                if(status === 'approved') {
+                    const { data: newAsset } = await supabase.from('assets').insert([{ code: c.asset_code, name: c.asset_name, category: c.category, branch_id: userProfile.branch_id, status: 'working' }]).select().single();
+                    if(newAsset) await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
+                }
+                loadData();
+                showToast('تم تسجيل الرد بنجاح', 'success');
+            });
         };
     </script>
 </body>
