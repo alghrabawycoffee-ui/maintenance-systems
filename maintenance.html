@@ -3,221 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance System | مسئول الصيانة</title>
+    <title>تفاصيل التذكرة | Maintenance System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { display: flex; height: 100vh; background: var(--glpi-bg); color: #333; font-size: 14px; overflow: hidden; }
-        .sidebar { width: 250px; background: var(--glpi-sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
-        .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
-        .sidebar-header i { color: var(--glpi-accent); margin-left: 10px; }
-        .nav-menu { padding: 10px 0; flex-grow: 1; }
-        .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
-        .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
-        .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--glpi-accent); }
-        .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
-        .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .content-body { flex: 1; padding: 25px; overflow-y: auto; }
-        .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
-        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; }
-        tbody tr:nth-child(even) { background: #FAFAFA; }
-        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-primary { background: var(--glpi-navbar); color: white; }
-        .btn-success { background: var(--glpi-success); color: white; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
-        .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
-        .tab { display: none; } .tab.active { display: block; }
-        .badge { padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; }
-        .bg-green { background: var(--glpi-success); }
-        .bg-red { background: var(--glpi-danger); }
-        .bg-orange { background: #F39C12; }
+        body { background: #F4F6F9; padding: 40px; display: flex; justify-content: center; }
+        
+        .ticket-container { background: white; width: 800px; max-width: 100%; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2C3E50; padding-bottom: 20px; margin-bottom: 30px; }
+        .ticket-header h1 { color: #2C3E50; font-size: 24px; }
+        .ticket-header h2 { color: #7F8C8D; font-size: 16px; }
+        .ticket-header .id-box { background: #2C3E50; color: white; padding: 10px 20px; border-radius: 4px; text-align: center; }
+        .ticket-header .id-box span { display: block; font-size: 24px; font-weight: 700; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .info-item { background: #F9F9F9; padding: 15px; border-radius: 6px; border-right: 4px solid #3498DB; }
+        .info-label { font-size: 12px; color: #7F8C8D; font-weight: 700; margin-bottom: 5px; }
+        .info-value { font-size: 16px; color: #2C3E50; font-weight: 700; }
+        
+        .section-box { border: 1px solid #ddd; border-radius: 6px; margin-bottom: 25px; }
+        .section-title { background: #F4F6F9; padding: 10px 15px; font-weight: 700; border-bottom: 1px solid #ddd; color: #2C3E50; }
+        .section-body { padding: 15px; font-size: 15px; color: #555; line-height: 1.6; white-space: pre-wrap; }
+        
+        .image-box { text-align: center; margin-bottom: 30px; }
+        .image-box img { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #ddd; }
+        
+        .badge { padding: 6px 12px; border-radius: 4px; font-size: 14px; font-weight: 700; color: white; display: inline-block; }
+        .bg-green { background: #00A65A; } .bg-red { background: #DD4B39; } .bg-orange { background: #F39C12; }
+
+        .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; text-align: center; }
+        .sig-box { border-top: 1px dashed #777; padding-top: 10px; color: #555; font-weight: 700; }
+
+        .actions { display: flex; gap: 10px; border-top: 2px dashed #ccc; padding-top: 20px; margin-top: 30px; }
+        .btn { padding: 10px 20px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: #2C3E50; color: white; }
+        .btn-secondary { background: #95A5A6; color: white; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .ticket-container { box-shadow: none; padding: 0; width: 100%; border: none; }
+            .actions { display: none !important; }
+            .info-item, .section-box { break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance</div>
-        <div class="nav-menu">
-            <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر</button>
-            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> الأصول</button>
-            <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> إرسال عهدة</button>
-        </div>
-        <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
-    </div>
 
-    <div class="main-content">
-        <div class="top-header">
-            <div class="user-profile"><span id="header-username">مسئول الصيانة</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
+    <div class="ticket-container" id="print-area">
+        <div class="ticket-header">
+            <div>
+                <h1><i class="fas fa-tools"></i> Maintenance System</h1>
+                <h2>نظام إدارة الصيانة والتذاكر</h2>
+            </div>
+            <div class="id-box">
+                تذكرة رقم
+                <span id="t-id">#0</span>
+            </div>
         </div>
 
-        <div class="content-body">
-            <div id="tab-tickets" class="tab active">
-                <div class="page-title"><span><i class="fas fa-ticket-alt"></i> كل التذاكر</span></div>
-                <div class="table-container">
-                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الوصف</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
-                </div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">الفرع</div>
+                <div class="info-value" id="v-branch">-</div>
             </div>
+            <div class="info-item">
+                <div class="info-label">الأصل (العهدة)</div>
+                <div class="info-value" id="v-asset">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">تاريخ إنشاء البلاغ</div>
+                <div class="info-value" id="v-date">-</div>
+            </div>
+            <div class="info-item" style="border-right-color: #F39C12;">
+                <div class="info-label">حالة التذكرة</div>
+                <div class="info-value" id="v-status">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">التصنيف</div>
+                <div class="info-value" id="v-cat">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">الأولوية</div>
+                <div class="info-value" id="v-priority">-</div>
+            </div>
+        </div>
 
-            <div id="tab-assets" class="tab">
-                <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
-                <div class="table-container">
-                    <div class="table-header"><span>إضافة أصل جديد (مباشر للفرع)</span></div>
-                    <div style="padding:20px;">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control" placeholder="مثال: تكييف شارب"></div>
-                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="a-code" class="form-control" placeholder="مثال: AC-001"></div>
-                            <div class="form-group"><label class="form-label">الفرع</label><select id="a-branch" class="form-control"></select></div>
-                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="a-cat" class="form-control" placeholder="مثال: تكييفات"></div>
-                        </div>
-                        <button class="btn btn-primary" onclick="addAsset()">إضافة الأصل</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الفرع</th><th>الحالة</th></tr></thead><tbody></tbody></table>
-                </div>
-            </div>
+        <div class="section-box">
+            <div class="section-title">وصف المشكلة (البلاغ):</div>
+            <div class="section-body" id="v-desc">-</div>
+        </div>
 
-            <div id="tab-custody" class="tab">
-                <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
-                <div class="table-container">
-                    <div class="table-header"><span>بيانات العهدة</span></div>
-                    <div style="padding:20px;">
-                        <div class="form-grid">
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="c-name" class="form-control" placeholder="مثال: طابعة ليزر"></div>
-                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="c-code" class="form-control" placeholder="مثال: PR-002"></div>
-                            <div class="form-group"><label class="form-label">الفرع</label><select id="c-branch" class="form-control"></select></div>
-                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="c-cat" class="form-control" placeholder="مثال: طابعات"></div>
-                        </div>
-                        <button class="btn btn-primary" onclick="sendCustody()">إرسال العهدة</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الفرع</th><th>الحالة</th></tr></thead><tbody></tbody></table>
-                </div>
+        <div class="image-box" id="v-image-container" style="display: none;">
+            <img id="v-image" src="" alt="صورة المشكلة">
+        </div>
+
+        <div class="section-box" id="resolution-box" style="display: none; border-color: #00A65A;">
+            <div class="section-title" style="background: #E8F5E9; color: #00A65A;">تفاصيل الإصلاح (الحل):</div>
+            <div class="section-body" id="v-resolution">-</div>
+            <div style="padding: 10px 15px; font-size: 12px; color: #777; border-top: 1px solid #ddd;">
+                تم الإغلاق بواسطة: <span id="v-closed-by">-</span> | بتاريخ: <span id="v-closed-at">-</span>
             </div>
+        </div>
+
+        <div class="signatures">
+            <div class="sig-box">توقيع مدير الفرع</div>
+            <div class="sig-box">توقيع مسئول الصيانة</div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة التذكرة</button>
+            <button class="btn btn-secondary" onclick="window.close()"><i class="fas fa-times"></i> إغلاق</button>
         </div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
-        
-        let userProfile = null;
-        
-        async function init() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if(!user) { window.location.href = 'index.html'; return; }
-            
-            const { data } = await supabase.from('profiles').select('*, branches(name)').eq('id', user.id).single();
-            userProfile = data;
 
-            if(userProfile.role !== 'maintenance') {
-                window.location.href = 'index.html'; return;
+        const ticketId = new URLSearchParams(window.location.search).get('id');
+        if(!ticketId) { alert('تذكرة غير موجودة'); window.close(); }
+
+        async function loadTicket() {
+            const { data: t, error } = await supabase.from('tickets')
+                .select('*, assets(name, code), branches(name), profiles!tickets_closed_by_fkey(full_name)')
+                .eq('id', ticketId)
+                .single();
+
+            if(error || !t) { alert('حدث خطأ في جلب التذكرة'); return; }
+
+            document.getElementById('t-id').innerText = `#${t.id}`;
+            document.getElementById('v-branch').innerText = t.branches?.name || '-';
+            document.getElementById('v-asset').innerText = `${t.assets?.name} (${t.assets?.code})`;
+            document.getElementById('v-date').innerText = new Date(t.created_at).toLocaleString('ar-EG');
+            document.getElementById('v-cat').innerText = t.category || 'غير محدد';
+            
+            let pText = t.priority === 'urgent' ? 'طارئة جداً' : t.priority === 'high' ? 'مهمة' : 'عادية';
+            document.getElementById('v-priority').innerText = pText;
+
+            let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
+                             t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
+                             '<span class="badge" style="background:#3498DB;">قيد المعالجة</span>';
+            document.getElementById('v-status').innerHTML = statusHtml;
+            document.getElementById('v-desc').innerText = t.description || 'لا يوجد وصف';
+
+            if(t.image_url) {
+                document.getElementById('v-image-container').style.display = 'block';
+                document.getElementById('v-image').src = t.image_url;
             }
-            document.getElementById('header-username').innerText = userProfile.full_name;
-            
-            const { data: branches } = await supabase.from('branches').select('*');
-            const optHtml = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-            document.getElementById('a-branch').innerHTML = optHtml;
-            document.getElementById('c-branch').innerHTML = optHtml;
 
-            loadData();
+            if(t.status === 'closed' && t.resolution_notes) {
+                document.getElementById('resolution-box').style.display = 'block';
+                document.getElementById('v-resolution').innerText = t.resolution_notes;
+                document.getElementById('v-closed-by').innerText = t.profiles?.full_name || 'مسئول الصيانة';
+                document.getElementById('v-closed-at').innerText = t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-';
+            }
         }
-        init();
-
-        window.logout = async () => { 
-            await supabase.auth.signOut();
-            window.location.href = 'index.html'; 
-        }
-
-        window.showTab = (id, btn) => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
-            if(btn) btn.classList.add('active');
-        }
-
-        async function loadData() {
-            const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
-            const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
-            tickets?.forEach(t => {
-                let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
-                                 t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
-                                 '<span class="badge" style="background:#3498DB;">قيد المعالجة</span>';
-                let action = t.status !== 'closed' ? `<button class="btn btn-success" onclick="closeTicket(${t.id}, ${t.asset_id})">إغلاق</button>` : '-';
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${t.description}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
-            });
-
-            const { data: assets } = await supabase.from('assets').select('*, branches(name)');
-            const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
-            assets?.forEach(a => {
-                tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name}</td><td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td></tr>`;
-            });
-
-            const { data: custody } = await supabase.from('custody_transfers').select('*, branches(name)').order('id', {ascending:false});
-            const tbodyC = document.querySelector('#tbl-custody tbody'); tbodyC.innerHTML = '';
-            custody?.forEach(c => {
-                let statusHtml = c.status === 'pending' ? '<span class="badge bg-orange">في انتظار موافقة الفرع</span>' :
-                                 c.status === 'approved' ? '<span class="badge bg-green">تمت الموافقة</span>' : 
-                                 '<span class="badge bg-red">مرفوض</span>';
-                tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${c.branches?.name}</td><td>${statusHtml}</td></tr>`;
-            });
-        }
-
-        window.addAsset = async () => {
-            const name = document.getElementById('a-name').value;
-            const code = document.getElementById('a-code').value;
-            const branch_id = document.getElementById('a-branch').value;
-            const category = document.getElementById('a-cat').value;
-            
-            if(!name || !code) return alert('اكتب الاسم والكود');
-            
-            await supabase.from('assets').insert([{ name, code, branch_id, category, status: 'working' }]);
-            document.getElementById('a-name').value = '';
-            document.getElementById('a-code').value = '';
-            document.getElementById('a-cat').value = '';
-            loadData();
-            alert('تم إضافة الأصل');
-        };
-
-        window.sendCustody = async () => {
-            const name = document.getElementById('c-name').value;
-            const code = document.getElementById('c-code').value;
-            const branch_id = document.getElementById('c-branch').value;
-            const category = document.getElementById('c-cat').value;
-            
-            if(!name || !code) return alert('اكتب الاسم والكود');
-            
-            await supabase.from('custody_transfers').insert([{ 
-                asset_name: name, 
-                asset_code: code, 
-                branch_id, 
-                category, 
-                created_by: userProfile.id 
-            }]);
-            document.getElementById('c-name').value = '';
-            document.getElementById('c-code').value = '';
-            document.getElementById('c-cat').value = '';
-            loadData();
-            alert('تم إرسال العهدة للفرع');
-        };
-
-        window.closeTicket = async (ticketId, assetId) => {
-            if(!confirm('تأكيد إغلاق التذكرة وإصلاح الأصل؟')) return;
-            await supabase.from('tickets').update({ status: 'closed', closed_by: userProfile.id, closed_at: new Date().toISOString() }).eq('id', ticketId);
-            await supabase.from('assets').update({ status: 'working' }).eq('id', assetId);
-            loadData();
-        };
+        loadTicket();
     </script>
 </body>
 </html>
