@@ -6,6 +6,7 @@
     <title>Maintenance System | الأدمن</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="ui.css">
     <style>
         :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
@@ -21,29 +22,30 @@
         .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .content-body { flex: 1; padding: 25px; overflow-y: auto; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
+        .refresh-btn:hover { background: #2980B9; }
+        .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
         .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center;}
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
-        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; }
-        tbody tr:nth-child(even) { background: #FAFAFA; }
-        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
+        .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { opacity: 0.85; }
         .btn-primary { background: var(--glpi-navbar); color: white; }
         .btn-success { background: var(--glpi-success); color: white; }
         .btn-danger { background: var(--glpi-danger); color: white; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
-        .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
+        .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; transition: 0.2s; }
+        .form-control:focus { border-color: var(--glpi-accent); background: white; }
         .tab { display: none; } .tab.active { display: block; }
         .badge { padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; }
-        .bg-green { background: var(--glpi-success); }
-        .bg-red { background: var(--glpi-danger); }
-        .bg-blue { background: #3498DB; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 500px; max-width: 90%; border-radius: 8px; padding: 25px; }
+        .bg-green { background: var(--glpi-success); } .bg-red { background: var(--glpi-danger); } .bg-blue { background: #3498DB; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .modal-content { background: white; width: 500px; max-width: 90%; border-radius: 8px; padding: 25px; animation: popIn 0.3s ease-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
     </style>
@@ -60,10 +62,14 @@
 
     <div class="main-content">
         <div class="top-header">
-            <div class="user-profile"><span id="header-username">مدير النظام</span><i class="fas fa-user-circle" style="font-size:24px;"></i></div>
+            <div class="user-profile">
+                <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                <span id="header-username">مدير النظام</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
+            </div>
         </div>
 
-        <div class="content-body">
+        <div class="content-body" id="main-content-body">
+            <!-- الفروع -->
             <div id="tab-branches" class="tab active">
                 <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
                 <div class="table-container">
@@ -75,6 +81,7 @@
                 </div>
             </div>
 
+            <!-- المستخدمين -->
             <div id="tab-users" class="tab">
                 <div class="page-title"><span><i class="fas fa-users"></i> إدارة المستخدمين</span></div>
                 <div class="table-container">
@@ -96,19 +103,13 @@
                 <button class="modal-close" onclick="document.getElementById('branch-modal').style.display='none'">&times;</button>
             </div>
             <input type="hidden" id="branch-id">
-            <div class="form-group">
-                <label class="form-label">اسم الفرع</label>
-                <input type="text" id="branch-name" class="form-control" placeholder="مثال: فرع المعادي">
-            </div>
-            <div class="form-group">
-                <label class="form-label">كود الفرع</label>
-                <input type="text" id="branch-code" class="form-control" placeholder="مثال: BR-17">
-            </div>
+            <div class="form-group"><label class="form-label">اسم الفرع</label><input type="text" id="branch-name" class="form-control"></div>
+            <div class="form-group"><label class="form-label">كود الفرع</label><input type="text" id="branch-code" class="form-control"></div>
             <button class="btn btn-primary" onclick="saveBranch()" style="width: 100%;">حفظ</button>
         </div>
     </div>
 
-    <!-- مودال المستخدمين (تم فك تعطيل اليوزرنيم) -->
+    <!-- مودال المستخدمين -->
     <div id="user-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -116,40 +117,29 @@
                 <button class="modal-close" onclick="document.getElementById('user-modal').style.display='none'">&times;</button>
             </div>
             <input type="hidden" id="user-id">
-            <input type="hidden" id="original-username"> <!-- عشان نقارن لو اتغير -->
-            <div class="form-group">
-                <label class="form-label">اسم المستخدم (للدخول)</label>
-                <input type="text" id="user-username" class="form-control" placeholder="مثال: branch17">
-            </div>
-            <div class="form-group">
-                <label class="form-label">الاسم بالكامل</label>
-                <input type="text" id="user-fullname" class="form-control" placeholder="مثال: فرع المعادي">
-            </div>
-            <div class="form-group">
-                <label class="form-label">كلمة المرور (اتركها فارغة للتعديل فقط)</label>
-                <input type="password" id="user-password" class="form-control" placeholder="********">
-            </div>
-            <div class="form-group">
-                <label class="form-label">الصلاحية</label>
+            <input type="hidden" id="original-username">
+            <div class="form-group"><label class="form-label">اسم المستخدم (للدخول)</label><input type="text" id="user-username" class="form-control"></div>
+            <div class="form-group"><label class="form-label">الاسم بالكامل</label><input type="text" id="user-fullname" class="form-control"></div>
+            <div class="form-group"><label class="form-label">كلمة المرور (اتركها فارغة للتعديل فقط)</label><input type="password" id="user-password" class="form-control"></div>
+            <div class="form-group"><label class="form-label">الصلاحية</label>
                 <select id="user-role" class="form-control">
                     <option value="branch">فرع</option>
                     <option value="maintenance">مسئول صيانة</option>
                     <option value="admin">أدمن</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">الفرع (خاص بالفرع فقط)</label>
-                <select id="user-branch" class="form-control"></select>
-            </div>
+            <div class="form-group"><label class="form-label">الفرع (خاص بالفرع فقط)</label><select id="user-branch" class="form-control"></select></div>
             <button class="btn btn-primary" onclick="saveUser()" style="width: 100%;">حفظ</button>
         </div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        import { showToast, showConfirm, toggleSpinner } from './ui.js';
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
+        let autoRefreshInterval;
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -161,6 +151,7 @@
             if(userProfile?.role !== 'admin') { window.location.replace('index.html'); return; }
             document.getElementById('header-username').innerText = userProfile.full_name;
             loadData();
+            autoRefreshInterval = setInterval(loadData, 15000);
         }
         init();
 
@@ -173,7 +164,13 @@
             if(btn) btn.classList.add('active');
         }
 
+        window.manualRefresh = () => {
+            loadData();
+            showToast('تم تحديث البيانات', 'success');
+        }
+
         async function loadData() {
+            // الفروع
             const { data: branches } = await supabase.from('branches').select('*').order('id');
             const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
             branches?.forEach(b => {
@@ -191,6 +188,7 @@
             const branchOptions = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('user-branch').innerHTML = branchOptions;
 
+            // المستخدمين
             const { data: users } = await supabase.from('profiles').select('*, branches(name)').order('created_at');
             const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
             users?.forEach(u => {
@@ -230,21 +228,25 @@
             const id = document.getElementById('branch-id').value;
             const name = document.getElementById('branch-name').value;
             const code = document.getElementById('branch-code').value;
-            if(!name || !code) return alert('اكتب اسم وكود الفرع');
+            if(!name || !code) return showToast('اكتب اسم وكود الفرع', 'error');
             
             if(id) {
                 await supabase.from('branches').update({ name, code }).eq('id', id);
+                showToast('تم تعديل الفرع بنجاح', 'success');
             } else {
                 await supabase.from('branches').insert([{ name, code }]);
+                showToast('تم إضافة الفرع بنجاح', 'success');
             }
             document.getElementById('branch-modal').style.display = 'none';
             loadData();
         }
 
-        window.deleteBranch = async (id) => {
-            if(!confirm('هل أنت متأكد من حذف هذا الفرع؟ سيتم حذف جميع المستخدمين والأصول المرتبطة به!')) return;
-            await supabase.from('branches').delete().eq('id', id);
-            loadData();
+        window.deleteBranch = (id) => {
+            showConfirm('هل أنت متأكد من حذف هذا الفرع؟ سيتم حذف جميع المستخدمين والأصول المرتبطة به!', async () => {
+                await supabase.from('branches').delete().eq('id', id);
+                loadData();
+                showToast('تم حذف الفرع', 'success');
+            });
         }
 
         // --- إدارة المستخدمين ---
@@ -252,7 +254,6 @@
             document.getElementById('user-modal-title').innerText = 'إضافة مستخدم';
             document.getElementById('user-id').value = '';
             document.getElementById('user-username').value = '';
-            document.getElementById('user-username').disabled = false;
             document.getElementById('original-username').value = '';
             document.getElementById('user-fullname').value = '';
             document.getElementById('user-password').value = '';
@@ -264,7 +265,6 @@
             document.getElementById('user-modal-title').innerText = 'تعديل مستخدم';
             document.getElementById('user-id').value = id;
             document.getElementById('user-username').value = username;
-            document.getElementById('user-username').disabled = false; // فكينا التعطيل
             document.getElementById('original-username').value = username;
             document.getElementById('user-fullname').value = fullname;
             document.getElementById('user-password').value = '';
@@ -282,40 +282,39 @@
             const role = document.getElementById('user-role').value;
             const branch_id = role === 'branch' ? document.getElementById('user-branch').value : null;
             
-            if(!fullname || !username) return alert('اكتب الاسم بالكامل واسم المستخدم');
+            if(!fullname || !username) return showToast('اكتب الاسم بالكامل واسم المستخدم', 'error');
 
             if(id) {
-                // تعديل مستخدم
                 if(username !== originalUsername) {
-                    // لو اليوزرنيم اتغير، نغير الإيميل في الداتابيز الأول
                     const { error: userErr } = await supabase.rpc('change_username', { target_user_id: id, new_username: username });
-                    if(userErr) return alert('خطأ في تغيير اسم المستخدم: ' + userErr.message);
+                    if(userErr) return showToast('خطأ في تغيير اسم المستخدم: ' + userErr.message, 'error');
                 }
 
                 await supabase.from('profiles').update({ full_name: fullname, role, branch_id }).eq('id', id);
                 if(password) {
                     const { error } = await supabase.rpc('change_user_password', { target_user_id: id, new_password: password });
-                    if(error) alert('تم تحديث البيانات، لكن خطأ في تغيير الباسورد: ' + error.message);
+                    if(error) showToast('تم تحديث البيانات، لكن خطأ في تغيير الباسورد: ' + error.message, 'error');
                 }
             } else {
-                // إضافة مستخدم جديد
-                if(!password) return alert('اكتب كلمة المرور للمستخدم الجديد');
+                if(!password) return showToast('اكتب كلمة المرور للمستخدم الجديد', 'error');
                 const { error } = await supabase.rpc('create_new_user', { 
                     p_username: username, p_password: password, p_full_name: fullname, p_role: role, p_branch_id: branch_id 
                 });
-                if(error) return alert('خطأ في إضافة المستخدم: ' + error.message);
+                if(error) return showToast('خطأ في إضافة المستخدم: ' + error.message, 'error');
             }
 
             document.getElementById('user-modal').style.display = 'none';
             loadData();
-            alert('تم الحفظ بنجاح');
+            showToast('تم الحفظ بنجاح', 'success');
         }
 
-        window.deleteUser = async (id) => {
-            if(!confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) return;
-            const { error } = await supabase.rpc('delete_app_user', { target_user_id: id });
-            if(error) return alert('خطأ في الحذف: ' + error.message);
-            loadData();
+        window.deleteUser = (id) => {
+            showConfirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟', async () => {
+                const { error } = await supabase.rpc('delete_app_user', { target_user_id: id });
+                if(error) return showToast('خطأ في الحذف: ' + error.message, 'error');
+                loadData();
+                showToast('تم حذف المستخدم', 'success');
+            });
         }
     </script>
 </body>
