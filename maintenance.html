@@ -53,6 +53,17 @@
         .modal-content { background: white; width: 500px; border-radius: 8px; padding: 25px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
         .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #777; }
+        
+        /* تنسيق صفحة الفروع والعهد */
+        .branches-layout { display: flex; gap: 20px; }
+        .branch-list { width: 250px; background: white; border: 1px solid var(--glpi-border); border-radius: 4px; padding: 10px; max-height: 600px; overflow-y: auto; }
+        .branch-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; border-radius: 4px; font-weight: 700; }
+        .branch-item:hover { background: #F4F6F9; }
+        .branch-item.active { background: var(--glpi-navbar); color: white; }
+        .branch-details { flex: 1; }
+        .asset-item { background: white; padding: 15px; margin-bottom: 10px; border: 1px solid var(--glpi-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .asset-item:hover { background: #F9F9F9; border-color: var(--glpi-accent); }
+        .history-box { display: none; background: #F9F9F9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -60,7 +71,8 @@
         <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance</div>
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر</button>
-            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> الأصول</button>
+            <button class="nav-btn" onclick="showTab('branches-history', this)"><i class="fas fa-store"></i> الفروع والعهد</button>
+            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> كل الأصول</button>
             <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> إرسال عهدة</button>
         </div>
         <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
@@ -72,6 +84,7 @@
         </div>
 
         <div class="content-body">
+            <!-- تبويب التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> لوحة التحكم</span></div>
                 <div class="stats-grid">
@@ -89,20 +102,34 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>التصنيف</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
+            <!-- تبويب الفروع والعهد (الجديد) -->
+            <div id="tab-branches-history" class="tab">
+                <div class="page-title"><span><i class="fas fa-store"></i> سجل الفروع والعهد</span></div>
+                <div class="branches-layout">
+                    <div class="branch-list" id="branch-list-container">
+                        <!-- سيتم تعبئتها بالفروع -->
+                    </div>
+                    <div class="branch-details" id="branch-details-container">
+                        <div style="text-align:center; padding:50px; color:#777;">اختر فرعاً من القائمة لعرض أصوله وسجلها.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
                     <div class="table-header"><span>إضافة أصل جديد</span></div>
                     <div style="padding:20px;">
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control" placeholder="مثال: تكييف شارب"></div>
-                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="a-code" class="form-control" placeholder="مثال: AC-001"></div>
+                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="a-name" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="a-code" class="form-control"></div>
                             <div class="form-group"><label class="form-label">الفرع</label><select id="a-branch" class="form-control"></select></div>
-                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="a-cat" class="form-control" placeholder="مثال: تكييفات"></div>
+                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="a-cat" class="form-control"></div>
                         </div>
                         <button class="btn btn-primary" onclick="addAsset()">إضافة الأصل</button>
                     </div>
@@ -112,16 +139,17 @@
                 </div>
             </div>
 
+            <!-- تبويب إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
                     <div class="table-header"><span>بيانات العهدة</span></div>
                     <div style="padding:20px;">
                         <div class="form-grid">
-                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="c-name" class="form-control" placeholder="مثال: طابعة ليزر"></div>
-                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="c-code" class="form-control" placeholder="مثال: PR-002"></div>
+                            <div class="form-group"><label class="form-label">اسم الأصل</label><input type="text" id="c-name" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">كود الأصل</label><input type="text" id="c-code" class="form-control"></div>
                             <div class="form-group"><label class="form-label">الفرع</label><select id="c-branch" class="form-control"></select></div>
-                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="c-cat" class="form-control" placeholder="مثال: طابعات"></div>
+                            <div class="form-group"><label class="form-label">التصنيف</label><input type="text" id="c-cat" class="form-control"></div>
                         </div>
                         <button class="btn btn-primary" onclick="sendCustody()">إرسال العهدة</button>
                     </div>
@@ -133,6 +161,7 @@
         </div>
     </div>
 
+    <!-- مودال الإغلاق -->
     <div id="close-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -140,8 +169,12 @@
                 <button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button>
             </div>
             <div class="form-group">
-                <label class="form-label">تفاصيل الإصلاح (ما تم فعله لحل المشكلة):</label>
-                <textarea id="resolution-input" class="form-control" rows="4" placeholder="مثال: تم تغيير الكومبريسور وتعبئة الفريون..."></textarea>
+                <label class="form-label">اسمك (القائم بالصيانة) - إجباري:</label>
+                <input type="text" id="maintenance-name" class="form-control" placeholder="اكتب اسمك هنا...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">تفاصيل الإصلاح - إجباري:</label>
+                <textarea id="resolution-input" class="form-control" rows="3" placeholder="مثال: تم تغيير الكومبريسور..."></textarea>
             </div>
             <button class="btn btn-success" onclick="confirmClose()" style="width:100%;">إرسال للفرع لتأكيد الإصلاح</button>
         </div>
@@ -154,6 +187,8 @@
         let userProfile = null;
         let currentTicketId = null;
         let currentAssetId = null;
+        let allBranches = [];
+        let allAssets = [];
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -166,7 +201,8 @@
             document.getElementById('header-username').innerText = userProfile.full_name;
             
             const { data: branches } = await supabase.from('branches').select('*');
-            const optHtml = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            allBranches = branches || [];
+            const optHtml = allBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('a-branch').innerHTML = optHtml;
             document.getElementById('c-branch').innerHTML = optHtml;
 
@@ -183,9 +219,9 @@
         }
 
         async function loadData() {
+            // التذاكر
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
-            
             let openC = 0, closedC = 0, pendingC = 0;
 
             tickets?.forEach(t => {
@@ -203,19 +239,22 @@
                     action += `<button class="btn btn-success" style="margin-right:5px;" onclick="openCloseModal(${t.id}, ${t.asset_id})">إنهاء وإرسال</button>`;
                 }
 
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.category || '-'}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
             });
 
             document.getElementById('st-open').innerText = openC;
             document.getElementById('st-closed').innerText = closedC;
             document.getElementById('st-pending').innerText = pendingC;
 
+            // الأصول
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
+            allAssets = assets || [];
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
-            assets?.forEach(a => {
+            allAssets.forEach(a => {
                 tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name}</td><td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td></tr>`;
             });
 
+            // العهد
             const { data: custody } = await supabase.from('custody_transfers').select('*, branches(name)').order('id', {ascending:false});
             const tbodyC = document.querySelector('#tbl-custody tbody'); tbodyC.innerHTML = '';
             custody?.forEach(c => {
@@ -224,22 +263,126 @@
                                  '<span class="badge bg-red">مرفوض</span>';
                 tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${c.branches?.name}</td><td>${statusHtml}</td></tr>`;
             });
+
+            // بناء صفحة الفروع
+            buildBranchesPage();
         }
 
+        // --- صفحة الفروع والعهد الجديدة ---
+        async function buildBranchesPage() {
+            const listContainer = document.getElementById('branch-list-container');
+            listContainer.innerHTML = allBranches.map(b => `<div class="branch-item" id="branch-btn-${b.id}" onclick="selectBranch(${b.id}, '${b.name}')">${b.name}</div>`).join('');
+        }
+
+        window.selectBranch = async (branchId, branchName) => {
+            document.querySelectorAll('.branch-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`branch-btn-${branchId}`).classList.add('active');
+
+            const detailsContainer = document.getElementById('branch-details-container');
+            detailsContainer.innerHTML = '<div style="text-align:center; padding:20px;">جاري تحميل أصول الفرع...</div>';
+
+            const branchAssets = allAssets.filter(a => a.branch_id === branchId);
+
+            if(branchAssets.length === 0) {
+                detailsContainer.innerHTML = '<div style="text-align:center; padding:50px; color:#777;">لا توجد أصول مسجلة لهذا الفرع.</div>';
+                return;
+            }
+
+            let html = `<h3 style="margin-bottom: 15px; color: var(--glpi-navbar);">أصول ${branchName}:</h3>`;
+            branchAssets.forEach(a => {
+                html += `
+                    <div class="asset-item" onclick="loadFullHistory(${a.id}, '${a.name}', this)">
+                        <div>
+                            <strong>${a.name}</strong> (${a.code})
+                        </div>
+                        <div>
+                            ${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}
+                        </div>
+                    </div>
+                    <div class="history-box" id="history-box-${a.id}"></div>
+                `;
+            });
+            detailsContainer.innerHTML = html;
+        }
+
+        window.loadFullHistory = async (assetId, assetName, element) => {
+            const box = document.getElementById(`history-box-${assetId}`);
+            
+            // لو مفتوح، اقفله
+            if(box.style.display === 'block') {
+                box.style.display = 'none';
+                return;
+            }
+
+            // اقفل أي بوكس تاني مفتوح
+            document.querySelectorAll('.history-box').forEach(b => b.style.display = 'none');
+
+            box.style.display = 'block';
+            box.innerHTML = 'جاري تحميل السجل...';
+
+            // جلب التذاكر الخاصة بالأصل ده
+            const { data: tickets } = await supabase.from('tickets').select('*').eq('asset_id', assetId).order('created_at');
+
+            let rows = '';
+            const asset = allAssets.find(a => a.id === assetId);
+            
+            // 1. تاريخ الإضافة
+            if(asset) {
+                rows += `<tr>
+                    <td>${new Date(asset.created_at).toLocaleString('ar-EG')}</td>
+                    <td style="color:var(--glpi-success); font-weight:bold;">تمت إضافة الأصل</td>
+                    <td>تم إضافة ${asset.name} بكود ${asset.code}</td>
+                </tr>`;
+            }
+
+            // 2. التذاكر
+            tickets?.forEach(t => {
+                rows += `<tr>
+                    <td>${new Date(t.created_at).toLocaleString('ar-EG')}</td>
+                    <td style="color:var(--glpi-danger); font-weight:bold;">تم فتح بلاغ عطل</td>
+                    <td>${t.description} (${t.category || 'بدون تصنيف'})</td>
+                </tr>`;
+                if(t.status === 'closed') {
+                    rows += `<tr>
+                        <td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td>
+                        <td style="color:var(--glpi-success); font-weight:bold;">تم الإصلاح</td>
+                        <td>${t.resolution_notes || 'تم الإصلاح'}</td>
+                    </tr>`;
+                }
+            });
+
+            if(rows === '') {
+                rows = '<tr><td colspan="3" style="text-align:center;">لا يوجد سجل لهذا الأصل بعد.</td></tr>';
+            }
+
+            box.innerHTML = `
+                <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+                    <thead><tr style="background:#eee;"><th>التاريخ</th><th>الحدث</th><th>التفاصيل</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            `;
+        }
+
+        // --- باقي الوظائف ---
         window.openCloseModal = (ticketId, assetId) => {
             currentTicketId = ticketId;
             currentAssetId = assetId;
             document.getElementById('resolution-input').value = '';
+            document.getElementById('maintenance-name').value = '';
             document.getElementById('close-modal').style.display = 'flex';
         }
 
         window.confirmClose = async () => {
+            const mName = document.getElementById('maintenance-name').value.trim();
             const notes = document.getElementById('resolution-input').value.trim();
-            if(!notes) return alert('يجب كتابة تفاصيل الإصلاح قبل الإرسال');
+            
+            if(!mName) return alert('يجب كتابة اسمك (القائم بالصيانة).');
+            if(!notes) return alert('يجب كتابة تفاصيل الإصلاح.');
 
             await supabase.from('tickets').update({ 
                 status: 'pending_approval', 
                 resolution_notes: notes,
+                maintenance_name: mName, // حفظ اسم القائم بالصيانة
                 closed_by: userProfile.id, 
                 closed_at: new Date().toISOString() 
             }).eq('id', currentTicketId);
