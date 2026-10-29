@@ -124,13 +124,14 @@
 
         const ticketId = new URLSearchParams(window.location.search).get('id');
         
+        // لو دخلت الصفحة من غير ID، هتوديك لصفحة الصيانة أوتوماتيك عشان ميزعلش
         if(!ticketId) { 
-            alert('تذكرة غير موجودة، يرجى الدخول من صفحة التذاكر'); 
-            window.close(); 
+            window.location.replace('maintenance.html'); 
         }
 
         async function loadTicket() {
-            // جلب بيانات التذكرة الأساسية
+            if(!ticketId) return;
+
             const { data: t, error } = await supabase.from('tickets')
                 .select('*, assets(name, code), branches(name)')
                 .eq('id', ticketId)
@@ -162,7 +163,6 @@
                 document.getElementById('v-image').src = t.image_url;
             }
 
-            // لو التذكرة مقفولة، بنجيب اسم المسؤول اللي قفلها
             if(t.status === 'closed' && t.resolution_notes) {
                 let closedByName = 'مسئول الصيانة';
                 if(t.closed_by) {
