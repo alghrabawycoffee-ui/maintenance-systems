@@ -72,3 +72,114 @@
 
 /* --- Table Hover --- */
 tbody tr:hover { background: #f1f5f9 !important; transition: background 0.2s; }
+
+/* =========================================
+   Responsive Design (Mobile & Tablet)
+   ========================================= */
+
+/* شاشات الموبايل والتابلت (أقل من 768px) */
+@media (max-width: 768px) {
+    /* إخفاء القائمة الجانبية */
+    .sidebar {
+        position: fixed;
+        right: -250px; /* مخفية على اليمين */
+        top: 0;
+        bottom: 0;
+        height: 100vh;
+        z-index: 1050;
+        transition: 0.3s;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+    }
+    .sidebar.active {
+        right: 0; /* تفتح */
+    }
+
+    /* زرار القائمة (الهامبرجر) */
+    .menu-toggle {
+        display: block !important;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        margin-left: 15px;
+    }
+
+    /* تعديلات الهيدر */
+    .top-header {
+        padding: 0 15px !important;
+    }
+    .user-profile span {
+        display: none; /* إخفاء اسم المستخدم في الموبايل لتوفير مساحة */
+    }
+
+    /* المحتوى الرئيسي */
+    .content-body {
+        padding: 15px !important;
+    }
+
+    /* الجداول (عشان متكسرش الشاشة) */
+    .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    table {
+        min-width: 600px; /* عرض أدنى للجدول عشان يتسحب */
+    }
+
+    /* الكروت (الإحصائيات) */
+    .dashboard-grid, .dashboard-charts, .branches-grid {
+        grid-template-columns: 1fr !important; /* عمود واحد */
+        gap: 15px !important;
+    }
+
+    /* الفورم (الخانات) */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* الزراير تبقى بعرض الشاشة */
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    /* صفحة تفاصيل التذكرة (للطباعة) */
+    .report-page {
+        width: 100% !important;
+        padding: 10px !important;
+        min-height: auto !important;
+    }
+    .header {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 10px;
+    }
+    .info-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .signatures {
+        flex-direction: column !important;
+        gap: 30px !important;
+        align-items: center;
+    }
+    .sig-box {
+        width: 100% !important;
+    }
+}
+
+/* تنسيقات إضافية للطباعة عشان تطلع من الموبايل صح */
+@media print {
+    .sidebar, .top-header, .menu-toggle, .btn {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+        padding: 0 !important;
+    }
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
