@@ -61,7 +61,6 @@
         </div>
 
         <div class="content-body">
-            <!-- التذاكر -->
             <div id="tab-tickets" class="tab active">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> كل التذاكر</span></div>
                 <div class="table-container">
@@ -69,7 +68,6 @@
                 </div>
             </div>
 
-            <!-- الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -89,7 +87,6 @@
                 </div>
             </div>
 
-            <!-- إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
@@ -112,19 +109,23 @@
     </div>
 
     <script type="module">
-        import { supabase, getMyProfile } from './js/supabase.js'
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
         
         async function init() {
-            userProfile = await getMyProfile();
-            if(!userProfile || userProfile.role !== 'maintenance') {
-                window.location.href = 'index.html';
-                return;
+            const { data: { user } } = await supabase.auth.getUser();
+            if(!user) { window.location.href = 'index.html'; return; }
+            
+            const { data } = await supabase.from('profiles').select('*, branches(name)').eq('id', user.id).single();
+            userProfile = data;
+
+            if(userProfile.role !== 'maintenance') {
+                window.location.href = 'index.html'; return;
             }
             document.getElementById('header-username').innerText = userProfile.full_name;
             
-            // تعبئة قائمة الفروع
             const { data: branches } = await supabase.from('branches').select('*');
             const optHtml = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('a-branch').innerHTML = optHtml;
@@ -147,7 +148,6 @@
         }
 
         async function loadData() {
-            // جلب التذاكر
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
             const tbodyT = document.querySelector('#tbl-tickets tbody'); tbodyT.innerHTML = '';
             tickets?.forEach(t => {
@@ -158,14 +158,12 @@
                 tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${t.description}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
             });
 
-            // جلب الأصول
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             const tbodyA = document.querySelector('#tbl-assets tbody'); tbodyA.innerHTML = '';
             assets?.forEach(a => {
                 tbodyA.innerHTML += `<tr><td>${a.code}</td><td>${a.name}</td><td>${a.branches?.name}</td><td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td></tr>`;
             });
 
-            // جلب العهد
             const { data: custody } = await supabase.from('custody_transfers').select('*, branches(name)').order('id', {ascending:false});
             const tbodyC = document.querySelector('#tbl-custody tbody'); tbodyC.innerHTML = '';
             custody?.forEach(c => {
