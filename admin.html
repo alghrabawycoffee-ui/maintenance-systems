@@ -108,7 +108,7 @@
         </div>
     </div>
 
-    <!-- مودال المستخدمين -->
+    <!-- مودال المستخدمين (تم فك تعطيل اليوزرنيم) -->
     <div id="user-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -116,6 +116,7 @@
                 <button class="modal-close" onclick="document.getElementById('user-modal').style.display='none'">&times;</button>
             </div>
             <input type="hidden" id="user-id">
+            <input type="hidden" id="original-username"> <!-- عشان نقارن لو اتغير -->
             <div class="form-group">
                 <label class="form-label">اسم المستخدم (للدخول)</label>
                 <input type="text" id="user-username" class="form-control" placeholder="مثال: branch17">
@@ -252,6 +253,7 @@
             document.getElementById('user-id').value = '';
             document.getElementById('user-username').value = '';
             document.getElementById('user-username').disabled = false;
+            document.getElementById('original-username').value = '';
             document.getElementById('user-fullname').value = '';
             document.getElementById('user-password').value = '';
             document.getElementById('user-role').value = 'branch';
@@ -262,7 +264,8 @@
             document.getElementById('user-modal-title').innerText = 'تعديل مستخدم';
             document.getElementById('user-id').value = id;
             document.getElementById('user-username').value = username;
-            document.getElementById('user-username').disabled = true; 
+            document.getElementById('user-username').disabled = false; // فكينا التعطيل
+            document.getElementById('original-username').value = username;
             document.getElementById('user-fullname').value = fullname;
             document.getElementById('user-password').value = '';
             document.getElementById('user-role').value = role;
@@ -273,21 +276,30 @@
         window.saveUser = async () => {
             const id = document.getElementById('user-id').value;
             const username = document.getElementById('user-username').value.trim();
+            const originalUsername = document.getElementById('original-username').value;
             const fullname = document.getElementById('user-fullname').value.trim();
             const password = document.getElementById('user-password').value;
             const role = document.getElementById('user-role').value;
             const branch_id = role === 'branch' ? document.getElementById('user-branch').value : null;
             
-            if(!fullname) return alert('اكتب الاسم بالكامل');
+            if(!fullname || !username) return alert('اكتب الاسم بالكامل واسم المستخدم');
 
             if(id) {
+                // تعديل مستخدم
+                if(username !== originalUsername) {
+                    // لو اليوزرنيم اتغير، نغير الإيميل في الداتابيز الأول
+                    const { error: userErr } = await supabase.rpc('change_username', { target_user_id: id, new_username: username });
+                    if(userErr) return alert('خطأ في تغيير اسم المستخدم: ' + userErr.message);
+                }
+
                 await supabase.from('profiles').update({ full_name: fullname, role, branch_id }).eq('id', id);
                 if(password) {
                     const { error } = await supabase.rpc('change_user_password', { target_user_id: id, new_password: password });
                     if(error) alert('تم تحديث البيانات، لكن خطأ في تغيير الباسورد: ' + error.message);
                 }
             } else {
-                if(!username || !password) return alert('اكتب اسم المستخدم وكلمة المرور');
+                // إضافة مستخدم جديد
+                if(!password) return alert('اكتب كلمة المرور للمستخدم الجديد');
                 const { error } = await supabase.rpc('create_new_user', { 
                     p_username: username, p_password: password, p_full_name: fullname, p_role: role, p_branch_id: branch_id 
                 });
