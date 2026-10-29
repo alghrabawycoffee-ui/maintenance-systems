@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="ui.css">
     <style>
+        /* نفس الستايل القديم */
         :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; height: 100vh; background: var(--glpi-bg); color: #333; font-size: 14px; overflow: hidden; }
@@ -74,7 +75,6 @@
         .back-btn:hover { background: #7f8c8d; }
         .print-filters { background: white; padding: 15px; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
         
-        /* صفحة عرض التذاكر المنفصلة */
         .tickets-filter-view { display: none; }
         
         @media print {
@@ -112,7 +112,6 @@
             <!-- 1. لوحة التحكم -->
             <div id="tab-tickets" class="tab active">
                 
-                <!-- شاشة الداشبورد -->
                 <div id="dashboard-view">
                     <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة التحكم (Dashboard)</span></div>
                     
@@ -154,7 +153,6 @@
                     </div>
                 </div>
 
-                <!-- شاشة عرض التذاكر (تظهر عند الضغط على كارت) -->
                 <div id="tickets-list-view" class="tickets-filter-view">
                     <button class="back-btn" onclick="backToDashboard()"><i class="fas fa-arrow-right"></i> رجوع للوحة التحكم</button>
                     <div class="page-title"><span id="tickets-view-title">التذاكر</span></div>
@@ -237,11 +235,11 @@
         </div>
     </div>
 
+    <!-- مودال الإغلاق (تم شيل خانة الاسم منه) -->
     <div id="close-modal" class="modal">
         <div class="modal-content" style="width:500px;">
             <div class="modal-header"><h3>إنهاء التذكرة وإرسالها للفرع</h3><button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button></div>
-            <div class="form-group"><label class="form-label">اسمك (القائم بالصيانة) - إجباري:</label><input type="text" id="maintenance-name" class="form-control" placeholder="اكتب اسمك هنا..."></div>
-            <div class="form-group"><label class="form-label">تفاصيل الإصلاح - إجباري:</label><textarea id="resolution-input" class="form-control" rows="3" placeholder="مثال: تم تغيير الكومبريسور..."></textarea></div>
+            <div class="form-group"><label class="form-label">تفاصيل الإصلاح (ما تم فعله) - إجباري:</label><textarea id="resolution-input" class="form-control" rows="4" placeholder="مثال: تم تغيير الكومبريسور..."></textarea></div>
             <button class="btn btn-success" onclick="confirmClose()" style="width:100%;">إرسال للفرع لتأكيد الإصلاح</button>
         </div>
     </div>
@@ -288,13 +286,10 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
-            backToDashboard(); // عشان لو كان فاتح تذاكر يرجع للداشبورد
+            backToDashboard(); 
         }
 
-        window.manualRefresh = () => {
-            loadData();
-            showToast('تم تحديث البيانات بنجاح', 'success');
-        }
+        window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات بنجاح', 'success'); }
 
         async function loadData() {
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
@@ -322,28 +317,14 @@
                 type: 'doughnut',
                 data: {
                     labels: ['مفتوحة', 'بانتظار التأكيد', 'مغلقة'],
-                    datasets: [{
-                        data: [openC, pendingC, closedC],
-                        backgroundColor: ['#DD4B39', '#9b59b6', '#00A65A'],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
+                    datasets: [{ data: [openC, pendingC, closedC], backgroundColor: ['#DD4B39', '#9b59b6', '#00A65A'], borderWidth: 2, borderColor: '#fff' }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } } }
             });
 
             const sortedBranches = Object.entries(branchTicketCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            document.getElementById('top-branches-body').innerHTML = sortedBranches.map(b => `
-                <tr><td>${b[0]}</td><td><strong>${b[1]}</strong> تذكرة</td></tr>
-            `).join('');
+            document.getElementById('top-branches-body').innerHTML = sortedBranches.map(b => `<tr><td>${b[0]}</td><td><strong>${b[1]}</strong> تذكرة</td></tr>`).join('');
 
-            // عرض أحدث 5 تذاكر في الداشبورد
             renderTable('tbl-recent-tickets', allTickets.slice(0, 5));
 
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
@@ -356,22 +337,14 @@
             const { data: custody } = await supabase.from('custody_transfers').select('*, branches(name)').order('id', {ascending:false});
             const tbodyC = document.querySelector('#tbl-custody tbody'); tbodyC.innerHTML = '';
             custody?.forEach(c => {
-                let statusHtml = c.status === 'pending' ? '<span class="badge bg-orange">في انتظار موافقة الفرع</span>' :
-                                 c.status === 'approved' ? '<span class="badge bg-green">تمت الموافقة</span>' : 
-                                 '<span class="badge bg-red">مرفوض</span>';
+                let statusHtml = c.status === 'pending' ? '<span class="badge bg-orange">في انتظار موافقة الفرع</span>' : c.status === 'approved' ? '<span class="badge bg-green">تمت الموافقة</span>' : '<span class="badge bg-red">مرفوض</span>';
                 tbodyC.innerHTML += `<tr><td>${c.asset_name}</td><td>${c.asset_code}</td><td>${c.branches?.name}</td><td>${statusHtml}</td></tr>`;
             });
 
             const grid = document.getElementById('branches-grid-container');
-            grid.innerHTML = allBranches.map(b => `
-                <div class="branch-card" onclick="openBranchAssets(${b.id}, '${b.name}')">
-                    <i class="fas fa-store"></i>
-                    <h3>${b.name}</h3>
-                </div>
-            `).join('');
+            grid.innerHTML = allBranches.map(b => `<div class="branch-card" onclick="openBranchAssets(${b.id}, '${b.name}')"><i class="fas fa-store"></i><h3>${b.name}</h3></div>`).join('');
         }
 
-        // --- دوال عرض صفحة التذاكر المنفصلة ---
         window.openTicketsView = (status, title) => {
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('tickets-list-view').style.display = 'block';
@@ -390,126 +363,62 @@
             document.getElementById('tickets-list-view').style.display = 'none';
         }
 
-        // دالة مساعدة لرسم الجدول
         function renderTable(tableId, tickets) {
             const tbody = document.querySelector(`#${tableId} tbody`);
             tbody.innerHTML = '';
-            
-            if(tickets.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد تذاكر في هذا القسم.</td></tr>';
-                return;
-            }
+            if(tickets.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد تذاكر.</td></tr>'; return; }
 
             tickets.forEach(t => {
-                let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
-                                 t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيد الفرع</span>' :
-                                 t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
-                                 '<span class="badge bg-blue">قيد المعالجة</span>';
-                
+                let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار تأكيد الفرع</span>' : t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : '<span class="badge bg-blue">قيد المعالجة</span>';
                 let action = `<button class="btn btn-primary" onclick="window.open('ticket-view.html?id=${t.id}', '_blank')">عرض</button> `;
                 if(t.status === 'open' || t.status === 'in_progress') {
                     action += `<button class="btn btn-success" style="margin-right:5px;" onclick="openCloseModal(${t.id}, ${t.asset_id})">إنهاء</button>`;
                 }
-
                 tbody.innerHTML += `<tr><td>#${t.id}</td><td>${t.branches?.name}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${action}</td></tr>`;
             });
         }
 
-        // --- باقي الوظائف ---
+        // --- باقي الدوال ---
         window.openBranchAssets = (branchId, branchName) => {
             document.getElementById('branches-view').style.display = 'none';
             document.getElementById('branch-assets-view').style.display = 'block';
             document.getElementById('branch-title-text').innerText = `أصول ${branchName}`;
-
             const container = document.getElementById('branch-assets-container');
             const branchAssets = allAssets.filter(a => a.branch_id === branchId);
-
-            if(branchAssets.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">لا توجد أصول لهذا الفرع.</p>';
-            } else {
-                container.innerHTML = branchAssets.map(a => `
-                    <div class="branch-card" onclick="openAssetHistory(${a.id}, '${a.name}', ${a.branch_id})">
-                        <i class="fas fa-desktop"></i>
-                        <h3>${a.name}</h3>
-                        <p style="color:#777; font-size:12px; margin-top:5px;">${a.code}</p>
-                        <div style="margin-top:10px;">${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</div>
-                    </div>
-                `).join('');
+            if(branchAssets.length === 0) { container.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">لا توجد أصول.</p>'; }
+            else {
+                container.innerHTML = branchAssets.map(a => `<div class="branch-card" onclick="openAssetHistory(${a.id}, '${a.name}', ${a.branch_id})"><i class="fas fa-desktop"></i><h3>${a.name}</h3><p style="color:#777; font-size:12px; margin-top:5px;">${a.code}</p><div style="margin-top:10px;">${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</div></div>`).join('');
             }
         }
-
-        window.backToBranches = () => {
-            document.getElementById('branch-assets-view').style.display = 'none';
-            document.getElementById('asset-history-view').style.display = 'none';
-            document.getElementById('branches-view').style.display = 'block';
-        }
-
-        window.backToBranchAssets = () => {
-            document.getElementById('asset-history-view').style.display = 'none';
-            document.getElementById('branch-assets-view').style.display = 'block';
-        }
-
+        window.backToBranches = () => { document.getElementById('branch-assets-view').style.display = 'none'; document.getElementById('asset-history-view').style.display = 'none'; document.getElementById('branches-view').style.display = 'block'; }
+        window.backToBranchAssets = () => { document.getElementById('asset-history-view').style.display = 'none'; document.getElementById('branch-assets-view').style.display = 'block'; }
         window.openAssetHistory = async (assetId, assetName, branchId) => {
             document.getElementById('branch-assets-view').style.display = 'none';
             document.getElementById('asset-history-view').style.display = 'block';
             document.getElementById('history-title-text').innerText = `سجل الأصل: ${assetName}`;
-            
-            document.getElementById('filter-from').value = '';
-            document.getElementById('filter-to').value = '';
-            document.getElementById('print-date-range').innerText = 'كل الفترات';
-
-            const tbody = document.querySelector('#tbl-asset-history tbody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>';
-
+            document.getElementById('filter-from').value = ''; document.getElementById('filter-to').value = ''; document.getElementById('print-date-range').innerText = 'كل الفترات';
+            const tbody = document.querySelector('#tbl-asset-history tbody'); tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">جاري التحميل...</td></tr>';
             const { data: tickets } = await supabase.from('tickets').select('*').eq('asset_id', assetId).order('created_at');
             const asset = allAssets.find(a => a.id === assetId);
-
             currentHistoryData = [];
-            if(asset) {
-                currentHistoryData.push({ date: new Date(asset.created_at), event: 'تمت إضافة الأصل', details: `تم إضافة ${asset.name} بكود ${asset.code}`, by: 'النظام', color: 'var(--glpi-success)' });
-            }
-
+            if(asset) currentHistoryData.push({ date: new Date(asset.created_at), event: 'تمت إضافة الأصل', details: `تم إضافة ${asset.name} بكود ${asset.code}`, by: 'النظام', color: 'var(--glpi-success)' });
             tickets?.forEach(t => {
                 currentHistoryData.push({ date: new Date(t.created_at), event: 'تم فتح بلاغ عطل', details: `${t.description} (${t.category || 'بدون تصنيف'})`, by: 'الفرع', color: 'var(--glpi-danger)' });
-                if(t.status === 'closed' && t.resolution_notes) {
-                    currentHistoryData.push({ date: t.closed_at ? new Date(t.closed_at) : new Date(), event: 'تم الإصلاح', details: t.resolution_notes, by: t.maintenance_name || 'مسئول الصيانة', color: 'var(--glpi-success)' });
-                }
+                if(t.status === 'closed' && t.resolution_notes) currentHistoryData.push({ date: t.closed_at ? new Date(t.closed_at) : new Date(), event: 'تم الإصلاح', details: t.resolution_notes, by: t.maintenance_name || 'مسئول الصيانة', color: 'var(--glpi-success)' });
             });
-
             renderHistoryTable();
         }
-
         function renderHistoryTable() {
             const tbody = document.querySelector('#tbl-asset-history tbody');
             const fromDate = document.getElementById('filter-from').value ? new Date(document.getElementById('filter-from').value) : null;
             const toDate = document.getElementById('filter-to').value ? new Date(document.getElementById('filter-to').value) : null;
-            
             if(toDate) toDate.setHours(23, 59, 59, 999);
-
-            const filtered = currentHistoryData.filter(item => {
-                if(fromDate && item.date < fromDate) return false;
-                if(toDate && item.date > toDate) return false;
-                return true;
-            }).sort((a,b) => a.date - b.date);
-
-            if(filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا يوجد سجل في هذه الفترة.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(item => `
-                <tr>
-                    <td>${item.date.toLocaleString('ar-EG')}</td>
-                    <td style="color:${item.color}; font-weight:bold;">${item.event}</td>
-                    <td>${item.details}</td>
-                    <td>${item.by}</td>
-                </tr>
-            `).join('');
+            const filtered = currentHistoryData.filter(item => { if(fromDate && item.date < fromDate) return false; if(toDate && item.date > toDate) return false; return true; }).sort((a,b) => a.date - b.date);
+            if(filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا يوجد سجل.</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(item => `<tr><td>${item.date.toLocaleString('ar-EG')}</td><td style="color:${item.color}; font-weight:bold;">${item.event}</td><td>${item.details}</td><td>${item.by}</td></tr>`).join('');
         }
-
         window.filterHistory = () => {
-            const from = document.getElementById('filter-from').value;
-            const to = document.getElementById('filter-to').value;
+            const from = document.getElementById('filter-from').value; const to = document.getElementById('filter-to').value;
             document.getElementById('print-date-range').innerText = (from || to) ? `من ${from || 'البداية'} إلى ${to || 'النهاية'}` : 'كل الفترات';
             renderHistoryTable();
         }
@@ -518,21 +427,16 @@
             currentTicketId = ticketId;
             currentAssetId = assetId;
             document.getElementById('resolution-input').value = '';
-            document.getElementById('maintenance-name').value = '';
             document.getElementById('close-modal').style.display = 'flex';
         }
 
         window.confirmClose = async () => {
-            const mName = document.getElementById('maintenance-name').value.trim();
             const notes = document.getElementById('resolution-input').value.trim();
-            
-            if(!mName) return showToast('يجب كتابة اسمك (القائم بالصيانة).', 'error');
             if(!notes) return showToast('يجب كتابة تفاصيل الإصلاح.', 'error');
 
             await supabase.from('tickets').update({ 
                 status: 'pending_approval', 
                 resolution_notes: notes,
-                maintenance_name: mName,
                 closed_by: userProfile.id, 
                 closed_at: new Date().toISOString() 
             }).eq('id', currentTicketId);
@@ -543,27 +447,19 @@
         }
 
         window.addAsset = async () => {
-            const name = document.getElementById('a-name').value;
-            const code = document.getElementById('a-code').value;
-            const branch_id = document.getElementById('a-branch').value;
-            const category = document.getElementById('a-cat').value;
+            const name = document.getElementById('a-name').value; const code = document.getElementById('a-code').value; const branch_id = document.getElementById('a-branch').value; const category = document.getElementById('a-cat').value;
             if(!name || !code) return showToast('اكتب الاسم والكود', 'error');
             await supabase.from('assets').insert([{ name, code, branch_id, category, status: 'working' }]);
             document.getElementById('a-name').value = ''; document.getElementById('a-code').value = ''; document.getElementById('a-cat').value = '';
-            loadData();
-            showToast('تم إضافة الأصل', 'success');
+            loadData(); showToast('تم إضافة الأصل', 'success');
         };
 
         window.sendCustody = async () => {
-            const name = document.getElementById('c-name').value;
-            const code = document.getElementById('c-code').value;
-            const branch_id = document.getElementById('c-branch').value;
-            const category = document.getElementById('c-cat').value;
+            const name = document.getElementById('c-name').value; const code = document.getElementById('c-code').value; const branch_id = document.getElementById('c-branch').value; const category = document.getElementById('c-cat').value;
             if(!name || !code) return showToast('اكتب الاسم والكود', 'error');
             await supabase.from('custody_transfers').insert([{ asset_name: name, asset_code: code, branch_id, category, created_by: userProfile.id }]);
             document.getElementById('c-name').value = ''; document.getElementById('c-code').value = ''; document.getElementById('c-cat').value = '';
-            loadData();
-            showToast('تم إرسال العهدة للفرع', 'success');
+            loadData(); showToast('تم إرسال العهدة للفرع', 'success');
         };
     </script>
 </body>
