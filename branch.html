@@ -33,6 +33,7 @@
         .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
         .btn-primary { background: var(--glpi-navbar); color: white; }
         .btn-success { background: var(--glpi-success); color: white; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--glpi-navbar); }
         .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--glpi-border); border-radius: 4px; font-family: 'Cairo'; font-size: 14px; outline: none; background: #FAFAFA; }
@@ -41,6 +42,7 @@
         .bg-green { background: var(--glpi-success); }
         .bg-red { background: var(--glpi-danger); }
         .bg-orange { background: #F39C12; }
+        .bg-blue { background: #3498DB; }
     </style>
 </head>
 <body>
@@ -65,29 +67,45 @@
                 <div class="table-container">
                     <div class="table-header"><span>إرسال بلاغ جديد</span></div>
                     <div style="padding:20px;">
-                        <div class="form-group"><label class="form-label">الأصل (العهدة)</label><select id="t-asset" class="form-control"></select></div>
-                        <div class="form-group"><label class="form-label">وصف المشكلة</label><textarea id="t-desc" class="form-control" rows="2"></textarea></div>
-                        <div class="form-group"><label class="form-label">صورة للمشكلة (اختياري)</label><input type="file" id="t-image" class="form-control" accept="image/*"></div>
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">الأصل (العهدة)</label><select id="t-asset" class="form-control"></select></div>
+                            <div class="form-group"><label class="form-label">تصنيف العطل</label>
+                                <select id="t-cat" class="form-control">
+                                    <option value="كهرباء">كهرباء</option>
+                                    <option value="تكييف">تكييف</option>
+                                    <option value="سباكة">سباكة</option>
+                                    <option value="شبكات">شبكات</option>
+                                    <option value="أثاث">أثاث</option>
+                                    <option value="أخرى">أخرى</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label class="form-label">الأولوية</label>
+                                <select id="t-priority" class="form-control">
+                                    <option value="normal">عادية</option>
+                                    <option value="high">مهمة</option>
+                                    <option value="urgent">طارئة جداً</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label class="form-label">صورة للمشكلة (اختياري)</label><input type="file" id="t-image" class="form-control" accept="image/*"></div>
+                        </div>
+                        <div class="form-group"><label class="form-label">وصف المشكلة</label><textarea id="t-desc" class="form-control" rows="3"></textarea></div>
                         <button class="btn btn-primary" onclick="addTicket()">إرسال البلاغ</button>
                     </div>
                 </div>
                 <div class="table-container">
-                    <table id="tbl-tickets"><thead><tr><th>#</th><th>الوصف</th><th>الأصل</th><th>الحالة</th><th>الصورة</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-tickets"><thead><tr><th>#</th><th>التصنيف</th><th>الأولوية</th><th>الوصف</th><th>الأصل</th><th>الحالة</th><th>الصورة</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
+            <!-- (نفس كود الأصول والعهد القديم) -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> أصول الفرع</span></div>
-                <div class="table-container">
-                    <table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table>
-                </div>
+                <div class="table-container"><table id="tbl-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الحالة</th></tr></thead><tbody></tbody></table></div>
             </div>
 
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> العهد المرسلة من الصيانة</span></div>
-                <div class="table-container">
-                    <table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
-                </div>
+                <div class="table-container"><table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody></tbody></table></div>
             </div>
         </div>
     </div>
@@ -97,32 +115,29 @@
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
-        
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
             if(!user) { window.location.href = 'index.html'; return; }
-            
             const { data } = await supabase.from('profiles').select('*, branches(name)').eq('id', user.id).single();
             userProfile = data;
-
-            if(userProfile.role !== 'branch') {
-                window.location.href = 'index.html'; return;
-            }
+            if(userProfile.role !== 'branch') { window.location.href = 'index.html'; return; }
             document.getElementById('header-username').innerText = userProfile.full_name;
             loadData();
         }
         init();
 
-        window.logout = async () => { 
-            await supabase.auth.signOut();
-            window.location.href = 'index.html'; 
-        }
-
+        window.logout = async () => { await supabase.auth.signOut(); window.location.href = 'index.html'; }
         window.showTab = (id, btn) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
+        }
+
+        function getPriorityBadge(p) {
+            if(p === 'urgent') return '<span class="badge bg-red">طارئة</span>';
+            if(p === 'high') return '<span class="badge bg-orange">مهمة</span>';
+            return '<span class="badge" style="background:#95A5A6;">عادية</span>';
         }
 
         async function loadData() {
@@ -140,8 +155,8 @@
                 const imgHtml = t.image_url ? `<a href="${t.image_url}" target="_blank"><i class="fas fa-image" style="color:var(--glpi-accent); font-size:18px;"></i></a>` : '-';
                 let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : 
                                  t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : 
-                                 '<span class="badge" style="background:#3498DB;">قيد المعالجة</span>';
-                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${imgHtml}</td></tr>`;
+                                 '<span class="badge bg-blue">قيد المعالجة</span>';
+                tbodyT.innerHTML += `<tr><td>#${t.id}</td><td>${t.category || '-'}</td><td>${getPriorityBadge(t.priority)}</td><td>${t.description}</td><td>${t.assets?.name}</td><td>${statusHtml}</td><td>${imgHtml}</td></tr>`;
             });
 
             const { data: custody } = await supabase.from('custody_transfers').select('*').eq('branch_id', userProfile.branch_id).order('id', {ascending:false});
@@ -161,6 +176,8 @@
 
         window.addTicket = async () => {
             const asset_id = document.getElementById('t-asset').value;
+            const category = document.getElementById('t-cat').value;
+            const priority = document.getElementById('t-priority').value;
             const desc = document.getElementById('t-desc').value;
             const file = document.getElementById('t-image').files[0];
             
@@ -171,22 +188,14 @@
 
             let image_url = null;
             if(file) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await supabase.storage.from('ticket-images').upload(fileName, file);
-                if(!uploadError) {
-                    const { data } = supabase.storage.from('ticket-images').getPublicUrl(fileName);
-                    image_url = data.publicUrl;
-                }
+                const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+                const { error } = await supabase.storage.from('ticket-images').upload(fileName, file);
+                if(!error) image_url = supabase.storage.from('ticket-images').getPublicUrl(fileName).data.publicUrl;
             }
 
             await supabase.from('tickets').insert([{ 
-                asset_id, 
-                branch_id: userProfile.branch_id, 
-                title: 'بلاغ عطل', 
-                description: desc, 
-                image_url,
-                created_by: userProfile.id 
+                asset_id, branch_id: userProfile.branch_id, title: 'بلاغ عطل', 
+                description: desc, category, priority, image_url, created_by: userProfile.id 
             }]);
             
             await supabase.from('assets').update({ status: 'broken' }).eq('id', asset_id);
@@ -194,49 +203,18 @@
             document.getElementById('t-desc').value = '';
             document.getElementById('t-image').value = '';
             btn.innerText = 'إرسال البلاغ'; btn.disabled = false;
-            
             loadData();
             alert('تم إرسال البلاغ بنجاح');
         };
 
         window.respondCustody = async (id, status) => {
             if(!confirm(`هل أنت متأكد من ${status === 'approved' ? 'الموافقة' : 'الرفض'}؟`)) return;
-            
-            const { data: c, error: cErr } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
-            if(cErr || !c) {
-                alert('حدث خطأ في قراءة بيانات العهدة');
-                return;
-            }
-            
-            // تحديث حالة العهدة
-            const { error: updateErr } = await supabase.from('custody_transfers').update({ 
-                status, 
-                responded_by: userProfile.id, 
-                responded_at: new Date().toISOString() 
-            }).eq('id', id);
-
-            if(updateErr) {
-                alert('خطأ في تحديث العهدة: ' + updateErr.message);
-                return;
-            }
-
+            const { data: c } = await supabase.from('custody_transfers').select('*').eq('id', id).single();
+            await supabase.from('custody_transfers').update({ status, responded_by: userProfile.id, responded_at: new Date().toISOString() }).eq('id', id);
             if(status === 'approved') {
-                // إضافة الأصل للجدول بعد الموافقة
-                const { data: newAsset, error: assetErr } = await supabase.from('assets').insert([{
-                    code: c.asset_code,
-                    name: c.asset_name,
-                    category: c.category,
-                    branch_id: userProfile.branch_id,
-                    status: 'working'
-                }]).select().single();
-                
-                if(assetErr) {
-                    alert('خطأ في إضافة الأصل: ' + assetErr.message);
-                } else if (newAsset) {
-                    await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
-                }
+                const { data: newAsset } = await supabase.from('assets').insert([{ code: c.asset_code, name: c.asset_name, category: c.category, branch_id: userProfile.branch_id, status: 'working' }]).select().single();
+                if(newAsset) await supabase.from('custody_transfers').update({ asset_id: newAsset.id }).eq('id', id);
             }
-            
             loadData();
             alert('تم تسجيل الرد بنجاح');
         };
