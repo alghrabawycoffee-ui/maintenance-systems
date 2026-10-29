@@ -64,7 +64,6 @@
         </div>
 
         <div class="content-body">
-            <!-- تبويب الفروع -->
             <div id="tab-branches" class="tab active">
                 <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
                 <div class="table-container">
@@ -72,11 +71,10 @@
                         <span>قائمة الفروع</span>
                         <button class="btn btn-success" onclick="openBranchModal()">إضافة فرع جديد</button>
                     </div>
-                    <table id="tbl-branches"><thead><tr><th>#</th><th>اسم الفرع</th><th>الكود</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-branches"><thead><tr><th>#</th><th>اسم الفرع</th><th>الكود</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
 
-            <!-- تبويب المستخدمين -->
             <div id="tab-users" class="tab">
                 <div class="page-title"><span><i class="fas fa-users"></i> إدارة المستخدمين</span></div>
                 <div class="table-container">
@@ -84,13 +82,13 @@
                         <span>قائمة المستخدمين</span>
                         <button class="btn btn-success" onclick="openUserModal()">إضافة مستخدم جديد</button>
                     </div>
-                    <table id="tbl-users"><thead><tr><th>اسم المستخدم</th><th>الاسم بالكامل</th><th>الدور</th><th>الفرع</th><th>الإجراء</th></tr></thead><tbody></tbody></table>
+                    <table id="tbl-users"><thead><tr><th>اسم المستخدم</th><th>الاسم بالكامل</th><th>الدور</th><th>الفرع</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- مودال الفروع (إضافة / تعديل) -->
+    <!-- مودال الفروع -->
     <div id="branch-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -110,7 +108,7 @@
         </div>
     </div>
 
-    <!-- مودال المستخدمين (إضافة / تعديل) -->
+    <!-- مودال المستخدمين -->
     <div id="user-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -127,8 +125,8 @@
                 <input type="text" id="user-fullname" class="form-control" placeholder="مثال: فرع المعادي">
             </div>
             <div class="form-group">
-                <label class="form-label">كلمة المرور</label>
-                <input type="password" id="user-password" class="form-control" placeholder="اتركها فارغة إذا لا تريد تغييرها">
+                <label class="form-label">كلمة المرور (اتركها فارغة للتعديل فقط)</label>
+                <input type="password" id="user-password" class="form-control" placeholder="********">
             </div>
             <div class="form-group">
                 <label class="form-label">الصلاحية</label>
@@ -151,7 +149,6 @@
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
-        let globalBranches = [];
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -176,24 +173,23 @@
         }
 
         async function loadData() {
-            // جلب الفروع
             const { data: branches } = await supabase.from('branches').select('*').order('id');
-            globalBranches = branches || [];
             const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
             branches?.forEach(b => {
                 tbodyB.innerHTML += `<tr>
                     <td>${b.id}</td>
                     <td>${b.name}</td>
                     <td>${b.code}</td>
-                    <td><button class="btn btn-primary" onclick="editBranch(${b.id}, '${b.name}', '${b.code}')">تعديل</button></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editBranch(${b.id}, '${b.name}', '${b.code}')">تعديل</button>
+                        <button class="btn btn-danger" onclick="deleteBranch(${b.id})">حذف</button>
+                    </td>
                 </tr>`;
             });
 
-            // تعبئة اختيار الفرع في المودال
             const branchOptions = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('user-branch').innerHTML = branchOptions;
 
-            // جلب المستخدمين
             const { data: users } = await supabase.from('profiles').select('*, branches(name)').order('created_at');
             const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
             users?.forEach(u => {
@@ -204,12 +200,15 @@
                     <td>${u.full_name}</td>
                     <td><span class="badge ${u.role === 'admin' ? 'bg-red' : u.role === 'maintenance' ? 'bg-blue' : 'bg-green'}">${roleName}</span></td>
                     <td>${branchName}</td>
-                    <td><button class="btn btn-primary" onclick="editUser('${u.id}', '${u.username}', '${u.full_name}', '${u.role}', '${u.branch_id || ''}')">تعديل</button></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editUser('${u.id}', '${u.username}', '${u.full_name}', '${u.role}', '${u.branch_id || ''}')">تعديل</button>
+                        <button class="btn btn-danger" onclick="deleteUser('${u.id}')">حذف</button>
+                    </td>
                 </tr>`;
             });
         }
 
-        // --- الفروع ---
+        // --- إدارة الفروع ---
         window.openBranchModal = () => {
             document.getElementById('branch-modal-title').innerText = 'إضافة فرع';
             document.getElementById('branch-id').value = '';
@@ -241,7 +240,13 @@
             loadData();
         }
 
-        // --- المستخدمين ---
+        window.deleteBranch = async (id) => {
+            if(!confirm('هل أنت متأكد من حذف هذا الفرع؟ سيتم حذف جميع المستخدمين والأصول المرتبطة به!')) return;
+            await supabase.from('branches').delete().eq('id', id);
+            loadData();
+        }
+
+        // --- إدارة المستخدمين ---
         window.openUserModal = () => {
             document.getElementById('user-modal-title').innerText = 'إضافة مستخدم';
             document.getElementById('user-id').value = '';
@@ -257,7 +262,7 @@
             document.getElementById('user-modal-title').innerText = 'تعديل مستخدم';
             document.getElementById('user-id').value = id;
             document.getElementById('user-username').value = username;
-            document.getElementById('user-username').disabled = true; // مينفعش نغير اليوزرنيم
+            document.getElementById('user-username').disabled = true; 
             document.getElementById('user-fullname').value = fullname;
             document.getElementById('user-password').value = '';
             document.getElementById('user-role').value = role;
@@ -276,31 +281,29 @@
             if(!fullname) return alert('اكتب الاسم بالكامل');
 
             if(id) {
-                // تعديل مستخدم موجود
                 await supabase.from('profiles').update({ full_name: fullname, role, branch_id }).eq('id', id);
-                
                 if(password) {
                     const { error } = await supabase.rpc('change_user_password', { target_user_id: id, new_password: password });
                     if(error) alert('تم تحديث البيانات، لكن خطأ في تغيير الباسورد: ' + error.message);
                 }
             } else {
-                // إضافة مستخدم جديد
                 if(!username || !password) return alert('اكتب اسم المستخدم وكلمة المرور');
-                
                 const { error } = await supabase.rpc('create_new_user', { 
-                    p_username: username, 
-                    p_password: password, 
-                    p_full_name: fullname, 
-                    p_role: role, 
-                    p_branch_id: branch_id 
+                    p_username: username, p_password: password, p_full_name: fullname, p_role: role, p_branch_id: branch_id 
                 });
-                
                 if(error) return alert('خطأ في إضافة المستخدم: ' + error.message);
             }
 
             document.getElementById('user-modal').style.display = 'none';
             loadData();
             alert('تم الحفظ بنجاح');
+        }
+
+        window.deleteUser = async (id) => {
+            if(!confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) return;
+            const { error } = await supabase.rpc('delete_app_user', { target_user_id: id });
+            if(error) return alert('خطأ في الحذف: ' + error.message);
+            loadData();
         }
     </script>
 </body>
