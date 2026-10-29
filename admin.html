@@ -14,7 +14,7 @@
         .sidebar { width: 250px; background: var(--glpi-sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
         .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
         .sidebar-header i { color: var(--glpi-accent); margin-left: 10px; }
-        .nav-menu { padding: 10px 0; flex-grow: 1; }
+        .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto;}
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
         .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
         .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--glpi-accent); }
@@ -28,9 +28,9 @@
         .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; }
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; overflow-x: auto;}
         .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center;}
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
         td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
         .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
@@ -44,7 +44,7 @@
         .form-control:focus { border-color: var(--glpi-accent); background: white; }
         .tab { display: none; } .tab.active { display: block; }
         .badge { padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; color: white; }
-        .bg-green { background: var(--glpi-success); } .bg-red { background: var(--glpi-danger); } .bg-blue { background: #3498DB; }
+        .bg-green { background: var(--glpi-success); } .bg-red { background: var(--glpi-danger); } .bg-blue { background: #3498DB; } .bg-orange { background: #F39C12; } .bg-purple { background: #9b59b6; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 500px; max-width: 90%; border-radius: 8px; padding: 25px; animation: popIn 0.3s ease-out; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glpi-border); padding-bottom: 15px; margin-bottom: 20px; }
@@ -57,6 +57,9 @@
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('branches', this)"><i class="fas fa-store"></i> الفروع</button>
             <button class="nav-btn" onclick="showTab('users', this)"><i class="fas fa-users"></i> المستخدمين</button>
+            <button class="nav-btn" onclick="showTab('tickets', this)"><i class="fas fa-ticket-alt"></i> التذاكر</button>
+            <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> الأصول</button>
+            <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> العهد</button>
         </div>
         <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
     </div>
@@ -73,6 +76,7 @@
         </div>
 
         <div class="content-body" id="main-content-body">
+            <!-- 1. الفروع -->
             <div id="tab-branches" class="tab active">
                 <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
                 <div class="table-container">
@@ -84,6 +88,7 @@
                 </div>
             </div>
 
+            <!-- 2. المستخدمين -->
             <div id="tab-users" class="tab">
                 <div class="page-title"><span><i class="fas fa-users"></i> إدارة المستخدمين</span></div>
                 <div class="table-container">
@@ -94,9 +99,34 @@
                     <table id="tbl-users"><thead><tr><th>اسم المستخدم</th><th>الاسم بالكامل</th><th>الدور</th><th>الفرع</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
+
+            <!-- 3. التذاكر (التحكم الكامل) -->
+            <div id="tab-tickets" class="tab">
+                <div class="page-title"><span><i class="fas fa-ticket-alt"></i> كل التذاكر</span></div>
+                <div class="table-container">
+                    <table id="tbl-admin-tickets"><thead><tr><th>#</th><th>الفرع</th><th>الأصل</th><th>الوصف</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
+
+            <!-- 4. الأصول (التحكم الكامل) -->
+            <div id="tab-assets" class="tab">
+                <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
+                <div class="table-container">
+                    <table id="tbl-admin-assets"><thead><tr><th>الكود</th><th>الاسم</th><th>الفرع</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
+
+            <!-- 5. العهد (التحكم الكامل) -->
+            <div id="tab-custody" class="tab">
+                <div class="page-title"><span><i class="fas fa-box-open"></i> كل العهد</span></div>
+                <div class="table-container">
+                    <table id="tbl-admin-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الفرع</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody></tbody></table>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Modals (نفس القديمة) -->
     <div id="branch-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3 id="branch-modal-title">إضافة فرع</h3><button class="modal-close" onclick="document.getElementById('branch-modal').style.display='none'">&times;</button></div>
@@ -161,6 +191,7 @@
         window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات', 'success'); }
 
         async function loadData() {
+            // الفروع
             const { data: branches } = await supabase.from('branches').select('*').order('id');
             const tbodyB = document.querySelector('#tbl-branches tbody'); tbodyB.innerHTML = '';
             branches?.forEach(b => {
@@ -178,6 +209,7 @@
             const branchOptions = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('user-branch').innerHTML = branchOptions;
 
+            // المستخدمين
             const { data: users } = await supabase.from('profiles').select('*, branches(name)').order('created_at');
             const tbodyU = document.querySelector('#tbl-users tbody'); tbodyU.innerHTML = '';
             users?.forEach(u => {
@@ -194,8 +226,51 @@
                     </td>
                 </tr>`;
             });
+
+            // التذاكر (تحكم كامل)
+            const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
+            const tbodyT = document.querySelector('#tbl-admin-tickets tbody'); tbodyT.innerHTML = '';
+            tickets?.forEach(t => {
+                let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار التأكيد</span>' : t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : '<span class="badge bg-blue">قيد المعالجة</span>';
+                tbodyT.innerHTML += `<tr>
+                    <td>#${t.id}</td>
+                    <td>${t.branches?.name}</td>
+                    <td>${t.assets?.name}</td>
+                    <td>${t.description}</td>
+                    <td>${statusHtml}</td>
+                    <td><button class="btn btn-danger" onclick="deleteTicket(${t.id})">حذف التذكرة</button></td>
+                </tr>`;
+            });
+
+            // الأصول (تحكم كامل)
+            const { data: assets } = await supabase.from('assets').select('*, branches(name)').order('id', {ascending:false});
+            const tbodyA = document.querySelector('#tbl-admin-assets tbody'); tbodyA.innerHTML = '';
+            assets?.forEach(a => {
+                tbodyA.innerHTML += `<tr>
+                    <td>${a.code}</td>
+                    <td>${a.name}</td>
+                    <td>${a.branches?.name}</td>
+                    <td>${a.status === 'working' ? '<span class="badge bg-green">سليم</span>' : '<span class="badge bg-red">عطلان</span>'}</td>
+                    <td><button class="btn btn-danger" onclick="deleteAsset(${a.id})">حذف الأصل</button></td>
+                </tr>`;
+            });
+
+            // العهد (تحكم كامل)
+            const { data: custody } = await supabase.from('custody_transfers').select('*, branches(name)').order('id', {ascending:false});
+            const tbodyC = document.querySelector('#tbl-admin-custody tbody'); tbodyC.innerHTML = '';
+            custody?.forEach(c => {
+                let statusHtml = c.status === 'pending' ? '<span class="badge bg-orange">في انتظار الموافقة</span>' : c.status === 'approved' ? '<span class="badge bg-green">تمت الموافقة</span>' : '<span class="badge bg-red">مرفوض</span>';
+                tbodyC.innerHTML += `<tr>
+                    <td>${c.asset_name}</td>
+                    <td>${c.asset_code}</td>
+                    <td>${c.branches?.name}</td>
+                    <td>${statusHtml}</td>
+                    <td><button class="btn btn-danger" onclick="deleteCustody(${c.id})">حذف العهدة</button></td>
+                </tr>`;
+            });
         }
 
+        // --- إدارة الفروع ---
         window.openBranchModal = () => {
             document.getElementById('branch-modal-title').innerText = 'إضافة فرع';
             document.getElementById('branch-id').value = '';
@@ -237,6 +312,7 @@
             });
         }
 
+        // --- إدارة المستخدمين ---
         window.openUserModal = () => {
             document.getElementById('user-modal-title').innerText = 'إضافة مستخدم';
             document.getElementById('user-id').value = '';
@@ -301,6 +377,33 @@
                 if(error) return showToast('خطأ في الحذف: ' + error.message, 'error');
                 loadData();
                 showToast('تم حذف المستخدم', 'success');
+            });
+        }
+
+        // --- إدارة التذاكر (التحكم الكامل) ---
+        window.deleteTicket = (id) => {
+            showConfirm('هل أنت متأكد من حذف هذه التذكرة نهائياً؟', async () => {
+                await supabase.from('tickets').delete().eq('id', id);
+                loadData();
+                showToast('تم حذف التذكرة', 'success');
+            });
+        }
+
+        // --- إدارة الأصول (التحكم الكامل) ---
+        window.deleteAsset = (id) => {
+            showConfirm('هل أنت متأكد من حذف هذا الأصل نهائياً؟', async () => {
+                await supabase.from('assets').delete().eq('id', id);
+                loadData();
+                showToast('تم حذف الأصل', 'success');
+            });
+        }
+
+        // --- إدارة العهد (التحكم الكامل) ---
+        window.deleteCustody = (id) => {
+            showConfirm('هل أنت متأكد من حذف هذه العهدة نهائياً؟', async () => {
+                await supabase.from('custody_transfers').delete().eq('id', id);
+                loadData();
+                showToast('تم حذف العهدة', 'success');
             });
         }
     </script>
