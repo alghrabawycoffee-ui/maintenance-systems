@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="ui.css">
     <style>
-        /* نفس الستايل القديم */
+        /* نفس الستايل */
         :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; height: 100vh; background: var(--glpi-bg); color: #333; font-size: 14px; overflow: hidden; }
@@ -27,10 +27,11 @@
         .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
         .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
         .refresh-btn:hover { background: #2980B9; }
+        .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; }
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; position: relative; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); }
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
         td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
@@ -89,7 +90,7 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header"><i class="fas fa-tools"></i> Maintenance</div>
         <div class="nav-menu">
             <button class="nav-btn active" onclick="showTab('tickets', this)"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</button>
@@ -103,15 +104,16 @@
     <div class="main-content">
         <div class="top-header">
             <div class="user-profile">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث البيانات</button>
+            </div>
+            <div class="user-profile">
                 <span id="header-username">مسئول الصيانة</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
             </div>
         </div>
 
         <div class="content-body" id="main-content-body">
-            <!-- 1. لوحة التحكم -->
             <div id="tab-tickets" class="tab active">
-                
                 <div id="dashboard-view">
                     <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة التحكم (Dashboard)</span></div>
                     
@@ -163,10 +165,8 @@
                         </table>
                     </div>
                 </div>
-
             </div>
 
-            <!-- 2. الفروع -->
             <div id="tab-branches" class="tab">
                 <div id="branches-view">
                     <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
@@ -193,7 +193,6 @@
                 </div>
             </div>
 
-            <!-- 3. كل الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -213,7 +212,6 @@
                 </div>
             </div>
 
-            <!-- 4. إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
@@ -235,7 +233,6 @@
         </div>
     </div>
 
-    <!-- مودال الإغلاق (تم شيل خانة الاسم منه) -->
     <div id="close-modal" class="modal">
         <div class="modal-content" style="width:500px;">
             <div class="modal-header"><h3>إنهاء التذكرة وإرسالها للفرع</h3><button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button></div>
@@ -281,12 +278,14 @@
         init();
 
         window.logout = async () => { await supabase.auth.signOut(); window.location.replace('index.html'); }
+        window.toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('active'); }
         window.showTab = (id, btn) => {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             if(btn) btn.classList.add('active');
             backToDashboard(); 
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('active');
         }
 
         window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات بنجاح', 'success'); }
@@ -378,7 +377,6 @@
             });
         }
 
-        // --- باقي الدوال ---
         window.openBranchAssets = (branchId, branchName) => {
             document.getElementById('branches-view').style.display = 'none';
             document.getElementById('branch-assets-view').style.display = 'block';
