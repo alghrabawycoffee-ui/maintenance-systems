@@ -20,12 +20,24 @@
         .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--glpi-accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
         .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; position: relative; }
+        
+        /* الإشعارات */
+        .notif-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; position: relative; margin-left: 15px;}
+        .notif-badge { position: absolute; top: -5px; right: -10px; background: var(--glpi-danger); color: white; font-size: 11px; font-weight: bold; border-radius: 50%; padding: 2px 6px; display: none; }
+        .notif-dropdown { display: none; position: absolute; top: 40px; left: 0; background: white; color: #333; width: 300px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; max-height: 300px; overflow-y: auto; }
+        .notif-header { padding: 10px 15px; font-weight: 700; border-bottom: 1px solid #eee; background: #f9f9f9; border-radius: 8px 8px 0 0; }
+        .notif-item { padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 13px; transition: 0.2s; cursor: pointer; }
+        .notif-item:hover { background: #f1f5f9; }
+        .notif-item.unread { background: #e8f4f8; font-weight: 700; }
+        
         .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
         .refresh-btn:hover { background: #2980B9; }
         .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; }
+        
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; overflow-x: auto;}
@@ -71,6 +83,14 @@
                 <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث</button>
             </div>
             <div class="user-profile">
+                <button class="notif-btn" onclick="toggleNotifDropdown()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notif-badge">0</span>
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">الإشعارات</div>
+                    <div id="notif-list"></div>
+                </div>
                 <span id="header-username">مدير النظام</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
             </div>
         </div>
@@ -100,7 +120,7 @@
                 </div>
             </div>
 
-            <!-- 3. التذاكر (التحكم الكامل) -->
+            <!-- 3. التذاكر -->
             <div id="tab-tickets" class="tab">
                 <div class="page-title"><span><i class="fas fa-ticket-alt"></i> كل التذاكر</span></div>
                 <div class="table-container">
@@ -108,7 +128,7 @@
                 </div>
             </div>
 
-            <!-- 4. الأصول (التحكم الكامل) -->
+            <!-- 4. الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -116,7 +136,7 @@
                 </div>
             </div>
 
-            <!-- 5. العهد (التحكم الكامل) -->
+            <!-- 5. العهد -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> كل العهد</span></div>
                 <div class="table-container">
@@ -163,6 +183,7 @@
         const supabase = createClient('https://clnivqqrldxzsfeumkof.supabase.co', 'sb_publishable_qAKbMTh8UdXjJ13nCP1JgQ_Q4xLxMCv')
         
         let userProfile = null;
+        let allTickets = [];
         let autoRefreshInterval;
 
         async function init() {
@@ -189,6 +210,43 @@
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('active');
         }
         window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات', 'success'); }
+
+        // --- الإشعارات ---
+        window.toggleNotifDropdown = () => {
+            const dd = document.getElementById('notif-dropdown');
+            dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+            if(dd.style.display === 'block') markNotificationsRead();
+        }
+
+        async function markNotificationsRead() {
+            const unread = allTickets.filter(t => !t.is_read_by_admin && t.status === 'open');
+            if(unread.length === 0) return;
+            for(let t of unread) {
+                await supabase.from('tickets').update({ is_read_by_admin: true }).eq('id', t.id);
+            }
+            loadData();
+        }
+
+        async function checkNotifications() {
+            const unread = allTickets.filter(t => !t.is_read_by_admin && t.status === 'open');
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            
+            if(unread.length > 0) { badge.innerText = unread.length; badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+
+            if(allTickets.length === 0) { list.innerHTML = '<div class="notif-item">لا توجد إشعارات.</div>'; }
+            else {
+                list.innerHTML = allTickets.slice(0, 5).map(t => {
+                    const isUnread = !t.is_read_by_admin && t.status === 'open';
+                    const icon = t.status === 'open' ? 'fa-envelope-open' : t.status === 'pending_approval' ? 'fa-hourglass-half' : 'fa-check-circle';
+                    return `<div class="notif-item ${isUnread ? 'unread' : ''}" onclick="window.open('ticket-view.html?id=${t.id}', '_blank')">
+                        <i class="fas ${icon}" style="margin-left:5px;"></i> 
+                        تذكرة #${t.id} - ${t.description.substring(0,20)}...
+                    </div>`;
+                }).join('');
+            }
+        }
 
         async function loadData() {
             // الفروع
@@ -229,8 +287,9 @@
 
             // التذاكر (تحكم كامل)
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
+            allTickets = tickets || [];
             const tbodyT = document.querySelector('#tbl-admin-tickets tbody'); tbodyT.innerHTML = '';
-            tickets?.forEach(t => {
+            allTickets.forEach(t => {
                 let statusHtml = t.status === 'open' ? '<span class="badge bg-orange">مفتوح</span>' : t.status === 'pending_approval' ? '<span class="badge bg-purple">بانتظار التأكيد</span>' : t.status === 'closed' ? '<span class="badge bg-green">مغلق</span>' : '<span class="badge bg-blue">قيد المعالجة</span>';
                 tbodyT.innerHTML += `<tr>
                     <td>#${t.id}</td>
@@ -241,6 +300,7 @@
                     <td><button class="btn btn-danger" onclick="deleteTicket(${t.id})">حذف التذكرة</button></td>
                 </tr>`;
             });
+            checkNotifications();
 
             // الأصول (تحكم كامل)
             const { data: assets } = await supabase.from('assets').select('*, branches(name)').order('id', {ascending:false});
@@ -270,7 +330,6 @@
             });
         }
 
-        // --- إدارة الفروع ---
         window.openBranchModal = () => {
             document.getElementById('branch-modal-title').innerText = 'إضافة فرع';
             document.getElementById('branch-id').value = '';
@@ -312,7 +371,6 @@
             });
         }
 
-        // --- إدارة المستخدمين ---
         window.openUserModal = () => {
             document.getElementById('user-modal-title').innerText = 'إضافة مستخدم';
             document.getElementById('user-id').value = '';
@@ -380,7 +438,6 @@
             });
         }
 
-        // --- إدارة التذاكر (التحكم الكامل) ---
         window.deleteTicket = (id) => {
             showConfirm('هل أنت متأكد من حذف هذه التذكرة نهائياً؟', async () => {
                 await supabase.from('tickets').delete().eq('id', id);
@@ -389,7 +446,6 @@
             });
         }
 
-        // --- إدارة الأصول (التحكم الكامل) ---
         window.deleteAsset = (id) => {
             showConfirm('هل أنت متأكد من حذف هذا الأصل نهائياً؟', async () => {
                 await supabase.from('assets').delete().eq('id', id);
@@ -398,7 +454,6 @@
             });
         }
 
-        // --- إدارة العهد (التحكم الكامل) ---
         window.deleteCustody = (id) => {
             showConfirm('هل أنت متأكد من حذف هذه العهدة نهائياً؟', async () => {
                 await supabase.from('custody_transfers').delete().eq('id', id);
