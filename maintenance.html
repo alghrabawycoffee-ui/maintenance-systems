@@ -7,32 +7,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="ui.css">
     <style>
-        /* نفس الستايل */
         :root { --glpi-navbar: #2C3E50; --glpi-sidebar: #222D32; --glpi-bg: #F4F6F9; --glpi-accent: #3498DB; --glpi-border: #D2D6DE; --glpi-danger: #DD4B39; --glpi-success: #00A65A; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { display: flex; height: 100vh; background: var(--glpi-bg); color: #333; font-size: 14px; overflow: hidden; }
         .sidebar { width: 250px; background: var(--glpi-sidebar); color: #B8C7CE; display: flex; flex-direction: column; }
         .sidebar-header { height: 60px; background: #1A2226; display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 700; color: white; border-bottom: 1px solid #111; }
         .sidebar-header i { color: var(--glpi-accent); margin-left: 10px; }
-        .nav-menu { padding: 10px 0; flex-grow: 1; }
+        .nav-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto;}
         .nav-btn { display: flex; align-items: center; padding: 14px 20px; background: none; border: none; color: #B8C7CE; text-align: right; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: 0.2s; border-right: 4px solid transparent; }
         .nav-btn i { width: 30px; text-align: center; margin-left: 10px; }
         .nav-btn:hover, .nav-btn.active { background: #1A2226; color: white; border-right-color: var(--glpi-accent); }
         .sidebar-footer { padding: 15px; border-top: 1px solid #111; }
         .logout-btn { width: 100%; padding: 12px; background: var(--glpi-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .top-header { height: 60px; background: var(--glpi-navbar); color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; }
-        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; }
+        .user-profile { font-weight: 700; display: flex; align-items: center; gap: 15px; position: relative; }
+        
+        /* الإشعارات */
+        .notif-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; position: relative; margin-left: 15px;}
+        .notif-badge { position: absolute; top: -5px; right: -10px; background: var(--glpi-danger); color: white; font-size: 11px; font-weight: bold; border-radius: 50%; padding: 2px 6px; display: none; }
+        .notif-dropdown { display: none; position: absolute; top: 40px; left: 0; background: white; color: #333; width: 300px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; max-height: 300px; overflow-y: auto; }
+        .notif-header { padding: 10px 15px; font-weight: 700; border-bottom: 1px solid #eee; background: #f9f9f9; border-radius: 8px 8px 0 0; }
+        .notif-item { padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 13px; transition: 0.2s; cursor: pointer; }
+        .notif-item:hover { background: #f1f5f9; }
+        .notif-item.unread { background: #e8f4f8; font-weight: 700; }
+        
         .refresh-btn { background: #3498DB; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; transition: 0.2s; }
         .refresh-btn:hover { background: #2980B9; }
         .menu-toggle { display: none; background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; }
+        
         .content-body { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
         .page-title { font-size: 22px; font-weight: 700; color: var(--glpi-navbar); margin-bottom: 25px; border-bottom: 2px solid var(--glpi-border); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; position: relative; }
-        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center; }
-        table { width: 100%; border-collapse: collapse; }
+        .table-container { background: white; border: 1px solid var(--glpi-border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; overflow-x: auto;}
+        .table-header { padding: 15px 20px; background: #F9F9F9; border-bottom: 1px solid var(--glpi-border); font-weight: 700; color: var(--glpi-navbar); display: flex; justify-content: space-between; align-items: center;}
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: right; padding: 12px 20px; font-size: 13px; color: var(--glpi-navbar); border-bottom: 2px solid var(--glpi-border); background: #F4F6F9; }
         td { padding: 12px 20px; border-bottom: 1px solid var(--glpi-border); color: #555; transition: 0.2s; }
         .btn { padding: 8px 16px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer; font-family: 'Cairo'; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
@@ -97,6 +109,7 @@
             <button class="nav-btn" onclick="showTab('branches', this)"><i class="fas fa-store"></i> الفروع</button>
             <button class="nav-btn" onclick="showTab('assets', this)"><i class="fas fa-desktop"></i> كل الأصول</button>
             <button class="nav-btn" onclick="showTab('custody', this)"><i class="fas fa-box-open"></i> إرسال عهدة</button>
+            <button class="nav-btn" onclick="showTab('reports', this)"><i class="fas fa-file-excel"></i> التقارير</button>
         </div>
         <div class="sidebar-footer"><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button></div>
     </div>
@@ -105,14 +118,23 @@
         <div class="top-header">
             <div class="user-profile">
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث البيانات</button>
+                <button class="refresh-btn" onclick="manualRefresh()"><i class="fas fa-sync-alt"></i> تحديث</button>
             </div>
             <div class="user-profile">
+                <button class="notif-btn" onclick="toggleNotifDropdown()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notif-badge">0</span>
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown">
+                    <div class="notif-header">الإشعارات</div>
+                    <div id="notif-list"></div>
+                </div>
                 <span id="header-username">مسئول الصيانة</span><i class="fas fa-user-circle" style="font-size:24px;"></i>
             </div>
         </div>
 
         <div class="content-body" id="main-content-body">
+            <!-- 1. لوحة التحكم -->
             <div id="tab-tickets" class="tab active">
                 <div id="dashboard-view">
                     <div class="page-title"><span><i class="fas fa-tachometer-alt"></i> لوحة التحكم (Dashboard)</span></div>
@@ -167,6 +189,7 @@
                 </div>
             </div>
 
+            <!-- 2. الفروع -->
             <div id="tab-branches" class="tab">
                 <div id="branches-view">
                     <div class="page-title"><span><i class="fas fa-store"></i> إدارة الفروع</span></div>
@@ -193,6 +216,7 @@
                 </div>
             </div>
 
+            <!-- 3. كل الأصول -->
             <div id="tab-assets" class="tab">
                 <div class="page-title"><span><i class="fas fa-desktop"></i> كل الأصول</span></div>
                 <div class="table-container">
@@ -212,6 +236,7 @@
                 </div>
             </div>
 
+            <!-- 4. إرسال عهدة -->
             <div id="tab-custody" class="tab">
                 <div class="page-title"><span><i class="fas fa-box-open"></i> إرسال عهدة جديدة للفرع</span></div>
                 <div class="table-container">
@@ -230,9 +255,45 @@
                     <table id="tbl-custody"><thead><tr><th>الأصل</th><th>الكود</th><th>الفرع</th><th>الحالة</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
+
+            <!-- 5. التقارير والتصدير -->
+            <div id="tab-reports" class="tab">
+                <div class="page-title"><span><i class="fas fa-file-excel"></i> التقارير والتصدير</span></div>
+                <div class="table-container">
+                    <div class="table-header"><span>فلترة التقارير</span></div>
+                    <div style="padding:20px;">
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                            <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" id="r-from" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" id="r-to" class="form-control"></div>
+                            <div class="form-group"><label class="form-label">الفرع</label>
+                                <select id="r-branch" class="form-control"><option value="">كل الفروع</option></select>
+                            </div>
+                            <div class="form-group"><label class="form-label">الحالة</label>
+                                <select id="r-status" class="form-control">
+                                    <option value="">كل الحالات</option>
+                                    <option value="open">مفتوحة</option>
+                                    <option value="pending_approval">بانتظار التأكيد</option>
+                                    <option value="closed">مغلقة</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" onclick="generateReport()">عرض التقرير</button>
+                            <button class="btn btn-success" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="tbl-report">
+                        <thead><tr><th>#</th><th>التاريخ</th><th>الفرع</th><th>الأصل</th><th>التصنيف</th><th>الحالة</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Modal إغلاق التذكرة -->
     <div id="close-modal" class="modal">
         <div class="modal-content" style="width:500px;">
             <div class="modal-header"><h3>إنهاء التذكرة وإرسالها للفرع</h3><button class="modal-close" onclick="document.getElementById('close-modal').style.display='none'">&times;</button></div>
@@ -255,6 +316,7 @@
         let currentHistoryData = [];
         let autoRefreshInterval;
         let myChart = null;
+        let reportData = [];
 
         async function init() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -271,6 +333,7 @@
             const optHtml = allBranches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
             document.getElementById('a-branch').innerHTML = optHtml;
             document.getElementById('c-branch').innerHTML = optHtml;
+            document.getElementById('r-branch').innerHTML += optHtml;
 
             loadData();
             autoRefreshInterval = setInterval(loadData, 15000); 
@@ -289,6 +352,44 @@
         }
 
         window.manualRefresh = () => { loadData(); showToast('تم تحديث البيانات بنجاح', 'success'); }
+
+        // --- الإشعارات ---
+        window.toggleNotifDropdown = () => {
+            const dd = document.getElementById('notif-dropdown');
+            dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+            if(dd.style.display === 'block') markNotificationsRead();
+        }
+
+        async function markNotificationsRead() {
+            const unreadTickets = allTickets.filter(t => !t.is_read_by_maintenance && t.status === 'open');
+            if(unreadTickets.length === 0) return;
+            
+            for(let t of unreadTickets) {
+                await supabase.from('tickets').update({ is_read_by_maintenance: true }).eq('id', t.id);
+            }
+            loadData();
+        }
+
+        async function checkNotifications() {
+            const unread = allTickets.filter(t => !t.is_read_by_maintenance && t.status === 'open');
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            
+            if(unread.length > 0) { badge.innerText = unread.length; badge.style.display = 'inline-block'; }
+            else { badge.style.display = 'none'; }
+
+            if(allTickets.length === 0) { list.innerHTML = '<div class="notif-item">لا توجد إشعارات.</div>'; }
+            else {
+                list.innerHTML = allTickets.slice(0, 5).map(t => {
+                    const isUnread = !t.is_read_by_maintenance && t.status === 'open';
+                    const icon = t.status === 'open' ? 'fa-envelope-open' : t.status === 'pending_approval' ? 'fa-hourglass-half' : 'fa-check-circle';
+                    return `<div class="notif-item ${isUnread ? 'unread' : ''}" onclick="window.open('ticket-view.html?id=${t.id}', '_blank')">
+                        <i class="fas ${icon}" style="margin-left:5px;"></i> 
+                        تذكرة #${t.id} - ${t.description.substring(0,20)}...
+                    </div>`;
+                }).join('');
+            }
+        }
 
         async function loadData() {
             const { data: tickets } = await supabase.from('tickets').select('*, assets(name), branches(name)').order('id', {ascending:false});
@@ -325,6 +426,7 @@
             document.getElementById('top-branches-body').innerHTML = sortedBranches.map(b => `<tr><td>${b[0]}</td><td><strong>${b[1]}</strong> تذكرة</td></tr>`).join('');
 
             renderTable('tbl-recent-tickets', allTickets.slice(0, 5));
+            checkNotifications();
 
             const { data: assets } = await supabase.from('assets').select('*, branches(name)');
             allAssets = assets || [];
@@ -377,6 +479,60 @@
             });
         }
 
+        // --- التقارير ---
+        window.generateReport = () => {
+            const from = document.getElementById('r-from').value ? new Date(document.getElementById('r-from').value) : null;
+            const to = document.getElementById('r-to').value ? new Date(document.getElementById('r-to').value) : null;
+            if(to) to.setHours(23, 59, 59, 999);
+            const branchId = document.getElementById('r-branch').value;
+            const status = document.getElementById('r-status').value;
+
+            reportData = allTickets.filter(t => {
+                const tDate = new Date(t.created_at);
+                if(from && tDate < from) return false;
+                if(to && tDate > to) return false;
+                if(branchId && t.branch_id != branchId) return false;
+                if(status && t.status !== status) return false;
+                return true;
+            });
+
+            const tbody = document.querySelector('#tbl-report tbody');
+            tbody.innerHTML = '';
+            if(reportData.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">لا توجد نتائج.</td></tr>'; return; }
+
+            reportData.forEach(t => {
+                let statusHtml = t.status === 'open' ? 'مفتوح' : t.status === 'pending_approval' ? 'بانتظار التأكيد' : 'مغلق';
+                tbody.innerHTML += `<tr>
+                    <td>#${t.id}</td>
+                    <td>${new Date(t.created_at).toLocaleDateString('ar-EG')}</td>
+                    <td>${t.branches?.name}</td>
+                    <td>${t.assets?.name}</td>
+                    <td>${t.category || '-'}</td>
+                    <td>${statusHtml}</td>
+                </tr>`;
+            });
+        }
+
+        window.exportToExcel = () => {
+            if(reportData.length === 0) return showToast('لا يوجد بيانات لتصديرها. اضغط عرض التقرير أولاً.', 'error');
+
+            const data = reportData.map(t => ({
+                'رقم التذكرة': t.id,
+                'التاريخ': new Date(t.created_at).toLocaleDateString('ar-EG'),
+                'الفرع': t.branches?.name || '-',
+                'الأصل': t.assets?.name || '-',
+                'التصنيف': t.category || '-',
+                'الحالة': t.status === 'open' ? 'مفتوح' : t.status === 'pending_approval' ? 'بانتظار التأكيد' : 'مغلق'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "التذاكر");
+            XLSX.writeFile(wb, "تقرير_الصيانة.xlsx");
+            showToast('تم تصدير التقرير بنجاح', 'success');
+        }
+
+        // --- باقي الدوال ---
         window.openBranchAssets = (branchId, branchName) => {
             document.getElementById('branches-view').style.display = 'none';
             document.getElementById('branch-assets-view').style.display = 'block';
@@ -436,7 +592,8 @@
                 status: 'pending_approval', 
                 resolution_notes: notes,
                 closed_by: userProfile.id, 
-                closed_at: new Date().toISOString() 
+                closed_at: new Date().toISOString(),
+                is_read_by_branch: false // إشعار جديد للفرع
             }).eq('id', currentTicketId);
             
             document.getElementById('close-modal').style.display = 'none';
