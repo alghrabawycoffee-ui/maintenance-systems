@@ -11,24 +11,11 @@
         body { background: #F4F6F9; padding: 20px; display: flex; justify-content: center; }
         
         .report-page { 
-            background: white; 
-            width: 210mm;
-            min-height: 297mm;
-            padding: 20mm; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            background: white; width: 210mm; min-height: 297mm; padding: 20mm; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); position: relative; display: flex; flex-direction: column;
         }
 
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 3px solid #2C3E50; 
-            padding-bottom: 15px; 
-            margin-bottom: 20px;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2C3E50; padding-bottom: 15px; margin-bottom: 20px; }
         .header-logo img { height: 70px; object-fit: contain; }
         .header-text { text-align: left; }
         .header-text h1 { color: #2C3E50; font-size: 26px; font-weight: 900; margin-bottom: 2px; }
@@ -55,12 +42,11 @@
         .timeline-table .action-done { color: #00A65A; font-weight: 700; }
         .timeline-table .action-pending { color: #F39C12; font-weight: 700; }
 
-        /* التوقيعات */
         .signatures { display: flex; justify-content: space-between; margin-top: auto; padding-top: 40px; }
         .sig-box { text-align: center; width: 40%; }
         .sig-line { border-top: 2px dashed #777; margin-bottom: 10px; }
         .sig-box p { font-weight: 700; color: #2C3E50; font-size: 14px; margin-bottom: 5px; }
-        .sig-box span { font-size: 14px; font-weight: 700; color: #2C3E50; display: block; margin-top: 5px; }
+        .sig-box span { font-size: 16px; font-weight: 900; color: #3498DB; display: block; margin-top: 5px; }
 
         .actions-bar { text-align: center; margin-top: 20px; margin-bottom: 20px; }
         .btn { padding: 10px 25px; border-radius: 4px; border: none; font-weight: 700; font-size: 16px; cursor: pointer; background: #2C3E50; color: white; font-family: 'Cairo'; display: inline-flex; align-items: center; gap: 8px; }
@@ -82,9 +68,7 @@
 
         <div class="report-page">
             <div class="header">
-                <div class="header-logo">
-                    <img src="logo.jpg" alt="Logo">
-                </div>
+                <div class="header-logo"><img src="logo.jpg" alt="Logo"></div>
                 <div class="header-text">
                     <h1>بن الغرباوي</h1>
                     <p>نظام إدارة الصيانة والتذاكر</p>
@@ -97,22 +81,16 @@
 
             <table>
                 <tr>
-                    <th>الفرع</th>
-                    <td id="v-branch">-</td>
-                    <th>الأصل (العهدة)</th>
-                    <td id="v-asset">-</td>
+                    <th>الفرع</th><td id="v-branch">-</td>
+                    <th>الأصل (العهدة)</th><td id="v-asset">-</td>
                 </tr>
                 <tr>
-                    <th>تاريخ البلاغ</th>
-                    <td id="v-date">-</td>
-                    <th>حالة التقرير</th>
-                    <td id="v-status">-</td>
+                    <th>تاريخ البلاغ</th><td id="v-date">-</td>
+                    <th>حالة التقرير</th><td id="v-status">-</td>
                 </tr>
                 <tr>
-                    <th>تصنيف العطل</th>
-                    <td id="v-cat">-</td>
-                    <th>الأولوية</th>
-                    <td id="v-priority">-</td>
+                    <th>تصنيف العطل</th><td id="v-cat">-</td>
+                    <th>الأولوية</th><td id="v-priority">-</td>
                 </tr>
             </table>
 
@@ -124,7 +102,7 @@
             </div>
 
             <div id="resolution-box" style="display: none;">
-                <div class="section-title" style="background: #00A65A;">تفاصيل الإصلاح (من مسئول الصيانة):</div>
+                <div class="section-title" style="background: #00A65A;">تفاصيل الإصلاح (من القائم بالصيانة):</div>
                 <div class="section-content" id="v-resolution" style="background: #E8F5E9; border-color: #00A65A;">-</div>
             </div>
 
@@ -143,22 +121,19 @@
                         <th style="width: 25%;">الحالة</th>
                     </tr>
                 </thead>
-                <tbody id="timeline-body">
-                    <!-- سيتم تعبئتها بالكود -->
-                </tbody>
+                <tbody id="timeline-body"></tbody>
             </table>
 
-            <!-- التوقيعات -->
             <div class="signatures">
                 <div class="sig-box">
                     <div class="sig-line"></div>
                     <p>توقيع مدير الفرع</p>
-                    <span>الاسم: <span id="v-branch-manager-name" style="color:#3498DB;">-</span></span>
+                    <span id="v-branch-manager-name">-</span>
                 </div>
                 <div class="sig-box">
                     <div class="sig-line"></div>
-                    <p>توقيع مسئول الصيانة</p>
-                    <span>الاسم: <span id="v-maintenance-manager-name" style="color:#3498DB;">-</span></span>
+                    <p>توقيع القائم بالصيانة</p>
+                    <span id="v-maintenance-name">-</span>
                 </div>
             </div>
         </div>
@@ -225,7 +200,6 @@
                 document.getElementById('v-resolution').innerText = t.resolution_notes;
             }
 
-            // عرض ملاحظات الفرع واسم مدير الفرع
             if(t.status === 'closed') {
                 if(t.branch_notes) {
                     document.getElementById('branch-notes-box').style.display = 'block';
@@ -236,8 +210,8 @@
                 }
             }
 
-            // اسم مسئول الصيانة في التوقيع
-            document.getElementById('v-maintenance-manager-name').innerText = closedByName;
+            // اسم القائم بالصيانة
+            document.getElementById('v-maintenance-name').innerText = t.maintenance_name || closedByName;
 
             // بناء سجل الإجراءات
             const timelineBody = document.getElementById('timeline-body');
@@ -253,7 +227,7 @@
             if(t.status === 'pending_approval' || t.status === 'closed') {
                 rows += `<tr>
                     <td>إجراء الصيانة وإرسال للفرع</td>
-                    <td>${closedByName}</td>
+                    <td>${t.maintenance_name || closedByName}</td>
                     <td>${t.closed_at ? new Date(t.closed_at).toLocaleString('ar-EG') : '-'}</td>
                     <td class="action-done">تم</td>
                 </tr>`;
